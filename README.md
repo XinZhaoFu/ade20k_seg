@@ -1,1 +1,1 @@
-# ade_seg_demo
+# ADE20K数据集的测速代码 好用就写详细的readme 不好用就不更新了
