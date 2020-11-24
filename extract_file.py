@@ -21,21 +21,17 @@ def findFile(path):
             yield img_path, mask_path, img_name
 
 
-def main():
-    target_img_file_list = glob.glob(target_img_file_path + '*.jpg')
-    target_label_file_list = glob.glob(target_label_file_path + '*.png')
-    print(len(target_img_file_list), len(target_label_file_list))
-    if len(target_img_file_list) == 0 or len(target_label_file_list) == 0 or len(target_img_file_list) != len(
-            target_label_file_list):
-        for ori_img_path, ori_mask_path, img_name in findFile(origin_file_path):
-            target_img_path = target_img_file_path + img_name + '.jpg'
-            target_label_path = target_label_file_path + img_name + '_seg.png'
-            shutil.copyfile(ori_img_path, target_img_path)
-            shutil.copyfile(ori_mask_path, target_label_path)
-            print(img_name)
-    else:
-        print('无需重新抽取')
+target_img_file_list = glob.glob(target_img_file_path + '*.jpg')
+target_label_file_list = glob.glob(target_label_file_path + '*.png')
+print(len(target_img_file_list), len(target_label_file_list))
+if len(target_img_file_list) == 0 or len(target_label_file_list) == 0 or len(target_img_file_list) != len(
+        target_label_file_list):
+    for ori_img_path, ori_mask_path, img_name in findFile(origin_file_path):
+        target_img_path = target_img_file_path + img_name + '.jpg'
+        target_label_path = target_label_file_path + img_name + '_seg.png'
+        shutil.copyfile(ori_img_path, target_img_path)
+        shutil.copyfile(ori_mask_path, target_label_path)
+        print(img_name)
+else:
+    print('无需重新抽取')
 
-
-if __name__ == '__main__':
-    main()
