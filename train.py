@@ -1,29 +1,25 @@
 from model.model import UNet_seg
 import tensorflow as tf
 import os
+from data_loader import Data_Loader
 
-load_weights = True
+load_weights = False
 checkpoint_save_path = './checkpoint/demo1.ckpt'
-batch_size = 16
-epochs = 100
+batch_size = 4
+epochs = 10
 
-# data_loader = Data_Loader()
-#
-# train_img, train_label = data_loader.get_train_data()
-# val_img, val_label = data_loader.get_val_data()
+data_loader = Data_Loader(load_file_mode='part')
 
-model = UNet_seg()
+train_img, train_label = data_loader.load_train_data()
+val_img, val_label = data_loader.load_val_data()
+
+model = UNet_seg(filters=32, img_width=512, input_channel=3, num_class=13, num_con_unit=1)
 
 model.compile(
     optimizer='adam',
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+    loss=tf.keras.losses.BinaryCrossentropy(),
     metrics=['accuracy']
 )
-# model.compile(
-#     optimizer=tf.keras.optimizers.SGD(learning_rate=0.001),
-#     loss=tf.keras.losses.BinaryCrossentropy(),
-#     metrics=['accuracy']
-# )
 
 if os.path.exists(checkpoint_save_path+'.index') and load_weights:
     print("[INFO] loading weights")

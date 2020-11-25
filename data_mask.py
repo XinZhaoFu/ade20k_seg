@@ -1,48 +1,49 @@
 import glob
-import scipy.io as scio
 import numpy as np
 import cv2
+from utils import shuffle_file, write_hdf5
+from math import ceil
 
 
-def get_colors_dict():
-    label_path = './data/ori-label/'
+def get_img_mask_hdf5(file_path, mask_size=512):
+    img_path = file_path + 'img/'
+    label_path = file_path + 'label/'
+    img_list = glob.glob(img_path + '*.jpg')
     label_list = glob.glob(label_path + '*.png')
+    assert(len(img_list) == len(label_list))
     print(len(label_list))
-    colors_dict = {}
-    num_dict = 1
-    num_file = 1
 
-    for label_file in label_list:
-        if num_file>10:
-            break
-        print(num_file, label_file)
-        num_file = num_file + 1
+    img_list, label_list = shuffle_file(img_list,label_list)
+
+    num_class = 13
+    num_file = 0
+
+    img_array_hdf5 = np.empty(shape=(len(img_list), mask_size, mask_size, 3), dtype=np.float16)
+    mask_array_hdf5 = np.zeros(shape=(len(label_list), mask_size, mask_size, num_class), dtype=np.uint8)
+
+    for img_file, label_file in zip(img_list, label_list):
+
+        print(num_file+1, img_file, label_file)
+
+        img = cv2.imread(img_file)
+        img = np.reshape(img, (mask_size, mask_size, 3))
+
         label = cv2.imread(label_file)
-        width, length, _ = label.shape
-        for w in range(width):
-            for l in range(length):
+        label = np.reshape(label, (mask_size, mask_size, 3))
+
+        mask_temp = np.zeros(shape=(mask_size, mask_size, num_class))
+        for w in range(mask_size):
+            for l in range(mask_size):
                 point_color = label[w][l]
-                tuple_point_color = (point_color[0], point_color[1])
-                if tuple_point_color not in colors_dict:
-                    dict = {tuple_point_color: num_dict}
-                    num_dict = num_dict + 1
-                    colors_dict.update(dict)
-    print('-----------')
-    print(num_dict-1)
-    return colors_dict
+                # class_point = int(point_color[2]/10) * 255 + point_color[1]
+                class_point = ceil(point_color[2] / 10)
+                if class_point > 12:
+                    class_point = 12
+                mask_temp[w][l][class_point] = 1
 
+        img_array_hdf5[num_file, :, :, :] = img / 255.
+        mask_array_hdf5[num_file, :, :, :] = mask_temp
+        num_file += 1
 
-def get_color_mask(label, colors_dict):
-    width, length, _ = label.shape
-    mask = np.empty(shape=(width, length))
-    for w in range(width):
-        for l in range(length):
-            point_color = label[w][l]
-            tuple_point_color = (point_color[0], point_color[1], point_color[2])
-            mask[w][l] = colors_dict.get(tuple_point_color, 0)
-    return mask
-
-
-colors_dict = get_colors_dict()
-print(colors_dict)
-
+        write_hdf5(img_array_hdf5, file_path + 'img.hdf5')
+        write_hdf5(mask_array_hdf5, file_path + 'mask.hdf5')

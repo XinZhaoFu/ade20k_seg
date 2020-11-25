@@ -73,7 +73,7 @@ class Up_Block(Model):
 
 
 class UNet_seg(Model):
-    def __init__(self,filters=32, img_width=512, input_channel=3, num_class=255, num_con_unit=1):
+    def __init__(self,filters=32, img_width=512, input_channel=3, num_class=13, num_con_unit=1):
         super(UNet_seg, self).__init__()
         self.filters = filters
         self.input_width = img_width

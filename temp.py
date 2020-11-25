@@ -24,27 +24,65 @@ part_val_label_file_path = './data/part_data/val/label/'
 part_test_img_file_path = './data/part_data/test/img/'
 part_test_label_file_path = './data/part_data/test/label/'
 
+
+# def stand_color(label):
+#     for w in range(512):
+#         for l in range(512):
+#             point_color = label[w][l]
+#             if point_color[2] % 10 != 0:
+#                 label[w][l][2] = 0
+#     return label
+
+#
+# label = cv2.imread('./data/part_data/train/label/ADE_train_00000120_seg.png')
+# cv2.imwrite('./data/test0.png', label)
+# label = stand_color(label)
+# cv2.imwrite('./data/test1.png', label)
+
+
+
+# def get_colors_dict(label_path):
+#     label_list = glob.glob(label_path + '*.png')
+#     print(len(label_list))
+#     num_file = 1
+#     account_list = np.zeros(shape=(256, 1), dtype=np.int)
+#
+#     for label_file in label_list:
+#         label = cv2.imread(label_file)
+#         for w in range(512):
+#             for l in range(512):
+#                 point_color = label[w][l]
+#                 account_list[point_color[2]] += 1
+#         print('已完成数目:' + str(num_file))
+#         num_file += 1
+#
+#     for i in range(256):
+#         print(i, account_list[i])
+#
+#
+# get_colors_dict(part_train_label_file_path)
+
 # train_img_file_list = glob.glob(part_train_img_file_path + '*.jpg')
 # train_label_file_list = glob.glob(part_train_label_file_path + '*.png')
 # val_img_file_list = glob.glob(part_val_img_file_path + '*.jpg')
 # val_label_file_list = glob.glob(part_val_label_file_path + '*.png')
 # test_img_file_list = glob.glob(part_test_img_file_path + '*.jpg')
 # test_label_file_list = glob.glob(part_test_label_file_path + '*.png')
-#
-#
+
+
 # def resize_img_file(img_file_path):
 #     img = cv2.imread(img_file_path)
 #     img = cv2.resize(img, dsize=(512, 512))
 #     cv2.imwrite(img_file_path, img)
-#
-#
+
+
 # file_list = train_img_file_list + train_label_file_list + val_img_file_list + \
 #             val_label_file_list + test_img_file_list + test_label_file_list
-#
+
 # for file in file_list:
 #     resize_img_file(file)
 
-img = cv2.imread('./data/test/label/' + 'ADE_train_00002141_seg.png')
+# img = cv2.imread('./data/test/label/' + 'ADE_train_00002141_seg.png')
 # img_name = (file_path.split('\\')[-1]).split('.')[0]
 # r = str(img[300][300]).split(' ')[0]
 # g = str(img[300][300]).split(' ')[1]

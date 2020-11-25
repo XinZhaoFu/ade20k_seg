@@ -1,43 +1,50 @@
-import glob
-
-import cv2
-import numpy as np
+from utils import load_hdf5
+from data_mask import get_img_mask_hdf5
 
 
-part_train_img_file_path = './data/part_data/train/img/'
-part_train_label_file_path = './data/part_data/train/label/'
-part_val_img_file_path = './data/part_data/val/img/'
-part_val_label_file_path = './data/part_data/val/label/'
-part_test_img_file_path = './data/part_data/test/img/'
-part_test_label_file_path = './data/part_data/test/label/'
+class Data_Loader:
+    def __init__(self, load_file_mode, mask_size=512, rewrite_hdf5=False):
+        self.load_file_mode = load_file_mode
+        self.mask_size = mask_size
+        self.rewrite_hdf5 = rewrite_hdf5
 
-train_img_file_list = glob.glob(part_train_img_file_path + '*.jpg')
-train_label_file_list = glob.glob(part_train_label_file_path + '*.png')
-val_img_file_list = glob.glob(part_val_img_file_path + '*.jpg')
-val_label_file_list = glob.glob(part_val_label_file_path + '*.png')
-test_img_file_list = glob.glob(part_test_img_file_path + '*.jpg')
-test_label_file_list = glob.glob(part_test_label_file_path + '*.png')
+        if load_file_mode == 'part':
+            self.train_file_path = './data/part_data/train/'
+            self.val_file_path = './data/part_data/val/'
+            self.test_file_path = './data/part_data/test/'
+        else:
+            self.train_file_path = './data/train/'
+            self.val_file_path = './data/val/'
+            self.test_file_path = './data/test/'
 
-print(len(train_img_file_list), len(train_label_file_list), len(val_img_file_list),
-      len(val_label_file_list), len(test_img_file_list), len(test_label_file_list))
+        if rewrite_hdf5:
+            self.rewrite_hdf5_file()
+
+    def rewrite_hdf5_file(self):
+        print('正在重写hdf5文件')
+        get_img_mask_hdf5(file_path=self.train_file_path)
+        get_img_mask_hdf5(file_path=self.val_file_path)
+        get_img_mask_hdf5(file_path=self.test_file_path)
+        print('重写完了')
+
+    def load_train_data(self):
+        print('正在载入训练集')
+        train_img_dataset = load_hdf5(self.train_file_path + 'img.hdf5')
+        train_mask_dataset = load_hdf5(self.train_file_path + 'mask.hdf5')
+        print(train_img_dataset.shape, train_mask_dataset.shape)
+        return train_img_dataset, train_mask_dataset
+
+    def load_val_data(self):
+        print('正在载入验证集')
+        val_img_dataset = load_hdf5(self.val_file_path + 'img.hdf5')
+        val_mask_dataset = load_hdf5(self.val_file_path + 'mask.hdf5')
+        return val_img_dataset, val_mask_dataset
+
+    def load_test_data(self):
+        print('正在载入测试集')
+        test_img_dataset = load_hdf5(self.test_file_path + 'img.hdf5')
+        test_mask_dataset = load_hdf5(self.test_file_path + 'mask.hdf5')
+        return test_img_dataset, test_mask_dataset
 
 
-def get_numpy_data_list(img_file_list, label_file_list):
-    dataset_img = np.empty((len(img_file_list), 512, 512, 3), dtype=np.float16)
-    dataset_label = np.empty((len(label_file_list), 512, 512, 3), dtype=np.float16)
-    index = 0
-    for img_file, label_file in zip(img_file_list, label_file_list):
-        img = cv2.imread(img_file) / 255.
-        label = cv2.imread(label_file)
-        aug_img_list, aug_label_list = img_augmentation(img, label)
-        for aug_img, aug_label in zip(aug_img_list, aug_label_list):
-            aug_img = aug_img/255.
-            if self.channel == 1:
-                aug_img = np.reshape(aug_img, (self.img_width, self.img_width, 1))
-            aug_label = aug_label/255.
-            aug_label = np.reshape(aug_label, (self.img_width, self.img_width, 1))
-            dataset_img[index, :, :, :] = aug_img
-            for i in range(self.num_class):
-                dataset_label[index, :, :, i] = (aug_label[:, :, 0] == i).astype(int)
-            index += 1
-    return dataset_img, dataset_label
+# dataloader = Data_Loader(load_file_mode='part')
