@@ -1,11 +1,12 @@
 import glob
 import os
-
+from data_utils.data_augmentation import img_crop
 import cv2
 import numpy as np
 import scipy.io as scio
 import pandas as pd
 import scipy
+from random import choice
 
 
 np.set_printoptions(threshold=np.inf)
@@ -23,6 +24,16 @@ part_val_img_file_path = './data/part_data/val/img/'
 part_val_label_file_path = './data/part_data/val/label/'
 part_test_img_file_path = './data/part_data/test/img/'
 part_test_label_file_path = './data/part_data/test/label/'
+
+# for _ in range(10):
+#     print(choice([0, 1]))
+
+# img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
+# label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+#
+# crop_img, cop_label = img_crop(img, label, mask_size=256)
+# cv2.imwrite('./data/test0.jpg', crop_img)
+# cv2.imwrite('./data/test0.png', cop_label)
 
 
 # def stand_color(label):

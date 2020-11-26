@@ -3,34 +3,37 @@ import numpy as np
 import cv2
 from utils import shuffle_file, write_hdf5
 from math import ceil
+from data_utils.data_augmentation import augmentation
 
 
 def get_img_mask_hdf5(file_path, mask_size=512):
     img_path = file_path + 'img/'
     label_path = file_path + 'label/'
-    img_list = glob.glob(img_path + '*.jpg')
-    label_list = glob.glob(label_path + '*.png')
-    assert(len(img_list) == len(label_list))
-    print(len(label_list))
+    img_file_list = glob.glob(img_path + '*.jpg')
+    label_file_list = glob.glob(label_path + '*.png')
+    assert len(img_file_list) == len(label_file_list)
+    print(len(label_file_list))
 
-    img_list, label_list = shuffle_file(img_list,label_list)
+    img_file_list, label_file_list = shuffle_file(img_file_list,label_file_list)
 
     num_class = 13
     num_file = 0
 
-    img_array_hdf5 = np.empty(shape=(len(img_list), mask_size, mask_size, 3), dtype=np.float16)
-    mask_array_hdf5 = np.zeros(shape=(len(label_list), mask_size, mask_size, num_class), dtype=np.uint8)
+    img_array_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.float16)
+    mask_array_hdf5 = np.zeros(shape=(len(label_file_list), mask_size, mask_size, num_class), dtype=np.uint8)
 
-    for img_file, label_file in zip(img_list, label_list):
+    img_list = []
+    label_list = []
 
-        print(num_file+1, img_file, label_file)
-
+    for img_file, label_file in zip(img_file_list, label_file_list):
         img = cv2.imread(img_file)
-        img = np.reshape(img, (mask_size, mask_size, 3))
-
+        img_list.append(img)
         label = cv2.imread(label_file)
-        label = np.reshape(label, (mask_size, mask_size, 3))
+        label_list.append(label)
 
+    img_list, label_list = augmentation(img_list, label_list, mask_size=256)
+
+    for img, label in zip(img_list, label_list):
         mask_temp = np.zeros(shape=(mask_size, mask_size, num_class))
         for w in range(mask_size):
             for l in range(mask_size):

@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import h5py
@@ -61,9 +62,21 @@ def shuffle_file(img_file_list, label_file_list):
 
 
 def distribution_file(dis_img_file_list, dis_label_file_list, dis_img_file_path, dis_label_file_path):
+    recreate_dir(dis_img_file_path)
+    recreate_dir(dis_label_file_path)
     for img_file, label_file in zip(dis_img_file_list, dis_label_file_list):
         img_name = img_file.split('\\')[-1]
         label_name = label_file.split('\\')[-1]
         shutil.copyfile(img_file, dis_img_file_path + img_name)
         shutil.copyfile(label_file, dis_label_file_path + label_name)
         print(img_file, label_file, dis_img_file_path + img_name, dis_label_file_path + label_name)
+
+
+def print_cost_time(start_time):
+    """
+    计算花费时长
+    :param start_time:
+    :return:
+    """
+    end_time = datetime.datetime.now()
+    print('time:\t' + str(end_time - start_time).split('.')[0])

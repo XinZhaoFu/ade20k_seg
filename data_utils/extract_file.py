@@ -5,8 +5,8 @@ import os
 import shutil
 
 origin_file_path = 'E:\\datasets\\ADE20K_2016_07_26\\images'
-target_img_file_path = './data/ori-img/'
-target_label_file_path = './data/ori-label/'
+target_img_file_path = '../data/ori-img/'
+target_label_file_path = '../data/ori-label/'
 
 
 def findFile(path):

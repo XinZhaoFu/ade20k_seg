@@ -1,9 +1,9 @@
 from utils import load_hdf5
-from data_mask import get_img_mask_hdf5
+from data_utils.data_mask import get_img_mask_hdf5
 
 
 class Data_Loader:
-    def __init__(self, load_file_mode, mask_size=512, rewrite_hdf5=False):
+    def __init__(self, load_file_mode, mask_size, rewrite_hdf5=False):
         self.load_file_mode = load_file_mode
         self.mask_size = mask_size
         self.rewrite_hdf5 = rewrite_hdf5
@@ -22,16 +22,15 @@ class Data_Loader:
 
     def rewrite_hdf5_file(self):
         print('正在重写hdf5文件')
-        get_img_mask_hdf5(file_path=self.train_file_path)
-        get_img_mask_hdf5(file_path=self.val_file_path)
-        get_img_mask_hdf5(file_path=self.test_file_path)
+        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size)
+        get_img_mask_hdf5(file_path=self.val_file_path, mask_size=self.mask_size)
+        get_img_mask_hdf5(file_path=self.test_file_path, mask_size=self.mask_size)
         print('重写完了')
 
     def load_train_data(self):
         print('正在载入训练集')
         train_img_dataset = load_hdf5(self.train_file_path + 'img.hdf5')
         train_mask_dataset = load_hdf5(self.train_file_path + 'mask.hdf5')
-        print(train_img_dataset.shape, train_mask_dataset.shape)
         return train_img_dataset, train_mask_dataset
 
     def load_val_data(self):
@@ -45,6 +44,3 @@ class Data_Loader:
         test_img_dataset = load_hdf5(self.test_file_path + 'img.hdf5')
         test_mask_dataset = load_hdf5(self.test_file_path + 'mask.hdf5')
         return test_img_dataset, test_mask_dataset
-
-
-# dataloader = Data_Loader(load_file_mode='part')

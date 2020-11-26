@@ -1,19 +1,19 @@
 import glob
 from utils import shuffle_file, distribution_file
 
-ori_train_img_file_path = './data/train/img/'
-ori_train_label_file_path = './data/train/label/'
-ori_val_img_file_path = './data/val/img/'
-ori_val_label_file_path = './data/val/label/'
-ori_test_img_file_path = './data/test/img/'
-ori_test_label_file_path = './data/test/label/'
+ori_train_img_file_path = '../data/train/img/'
+ori_train_label_file_path = '../data/train/label/'
+ori_val_img_file_path = '../data/val/img/'
+ori_val_label_file_path = '../data/val/label/'
+ori_test_img_file_path = '../data/test/img/'
+ori_test_label_file_path = '../data/test/label/'
 
-part_train_img_file_path = './data/part_data/train/img/'
-part_train_label_file_path = './data/part_data/train/label/'
-part_val_img_file_path = './data/part_data/val/img/'
-part_val_label_file_path = './data/part_data/val/label/'
-part_test_img_file_path = './data/part_data/test/img/'
-part_test_label_file_path = './data/part_data/test/label/'
+part_train_img_file_path = '../data/part_data/train/img/'
+part_train_label_file_path = '../data/part_data/train/label/'
+part_val_img_file_path = '../data/part_data/val/img/'
+part_val_label_file_path = '../data/part_data/val/label/'
+part_test_img_file_path = '../data/part_data/test/img/'
+part_test_label_file_path = '../data/part_data/test/label/'
 
 ori_train_img_file_list = glob.glob(ori_train_img_file_path + '*.jpg')
 ori_train_label_file_list = glob.glob(ori_train_label_file_path + '*.png')
