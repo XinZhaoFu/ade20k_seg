@@ -61,7 +61,7 @@ def get_img_mask_hdf5(file_path, mask_size=512):
         label_it = np.nditer(nd_label_temp, flags=['multi_index', 'buffered'])
         while not label_it.finished:
             # class_point = int(label[w][l][2]/10) * 255 + label[w][l][1]
-            class_point = ceil(label_it[0] / 10.)  # 只有13类！！！！！！！！！ 上面那行类多 就是不知道咋编码
+            class_point = ceil(label_it[0] / 10.)  # 只有13(算背景)类！！！！！！！！！ 上面那行类多 就是不知道咋编码
             if class_point > 12:
                 class_point = 12
             mask_temp[label_it.multi_index[0]][label_it.multi_index[1]][class_point] = 1
