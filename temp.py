@@ -7,6 +7,7 @@ import scipy.io as scio
 import pandas as pd
 import scipy
 from random import choice
+from data_utils.data_augmentation import augmentation
 
 
 np.set_printoptions(threshold=np.inf)
@@ -28,8 +29,38 @@ part_test_label_file_path = './data/part_data/test/label/'
 # for _ in range(10):
 #     print(choice([0, 1]))
 
-# img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
-# label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
+label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+
+# img = cv2.resize(img, (256, 256))
+# nd_img = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# nd_img[:, :, :] = img
+#
+# a = np.arange(6).reshape(2, 3)
+#
+# for point in np.nditer(nd_img, flags=['external_loop', 'buffered'], order='K'):
+#     print(point)
+
+
+# a = np.arange(6).reshape(2, 3)
+# b = np.zeros(shape=(2, 3))
+#
+# it = np.nditer(a, flags=['multi_index'])
+# while not it.finished:
+#     print("%d <%s>" % (it[0], it.multi_index))
+#     b[it.multi_index[0]][it.multi_index[1]] = it[0]
+#     it.iternext()
+#
+# print(b)
+
+# img_list, label_list = [], []
+# for _ in range(100):
+#     img_list.append(img)
+#     label_list.append(label)
+#
+# aug_img_list, aug_label_list = augmentation(img_list, label_list, mask_size=256)
+
+
 #
 # crop_img, cop_label = img_crop(img, label, mask_size=256)
 # cv2.imwrite('./data/test0.jpg', crop_img)
