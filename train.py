@@ -1,5 +1,5 @@
 import datetime
-from model.model import UNet_seg
+from model.unet import UNet_seg
 import tensorflow as tf
 import os
 from data_loader import Data_Loader
