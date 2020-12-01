@@ -1,11 +1,13 @@
 import glob
 import os
 from data_utils.data_augmentation import img_crop
+from random import randint
 import cv2
 import numpy as np
 import scipy.io as scio
 import pandas as pd
 import scipy
+import tensorflow as tf
 from random import choice
 from data_utils.data_augmentation import augmentation
 
@@ -31,6 +33,18 @@ part_test_label_file_path = './data/part_data/test/label/'
 
 img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
 label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+
+temp_2d_array = np.zeros(shape=(100, 100), dtype=np.int)
+
+label_it = np.nditer(temp_2d_array, op_flags=['readwrite'])
+while not label_it.finished:
+    label_it[0] = randint(0, 12)
+    label_it.iternext()
+print(temp_2d_array)
+# temp_2d_array = [[0, 1, 1], [1, 2, 1]]
+num_class = 13
+temp_2d_array = tf.one_hot(temp_2d_array, num_class)
+print(temp_2d_array)
 
 # img = cv2.resize(img, (256, 256))
 # nd_img = np.empty(shape=(256, 256, 3), dtype=np.uint8)
