@@ -7,8 +7,8 @@ from utils import print_cost_time
 
 start_time = datetime.datetime.now()
 load_weights = False
-checkpoint_save_path = './checkpoint/demo1.ckpt'
-batch_size = 8
+checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
+batch_size = 12
 epochs = 0
 
 #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all

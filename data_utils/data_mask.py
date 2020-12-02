@@ -27,7 +27,7 @@ def get_img_mask_hdf5(file_path, mask_size=512):
     """
     这里实在是太吃内存了 在数据增强前不得不做一个截流 每次只通过一定数量的文件
     因为把resize放在数据增强这个函数里了
-    经过增强后的数据基本就能受得住了
+    经过resize后的数据基本就能受得住了
     """
     data_loader_batch_size = 100
     count_temp_for_memory = 1
@@ -56,16 +56,26 @@ def get_img_mask_hdf5(file_path, mask_size=512):
     for img, label in zip(img_list, label_list):
         nd_label_temp = np.empty(shape=(mask_size, mask_size))
         nd_label_temp[:, :] = label[:, :, 2]
-        mask_temp = np.zeros(shape=(mask_size, mask_size, num_class), dtype=np.uint8)
+        mask_temp = np.zeros(shape=(mask_size, mask_size, num_class), dtype=np.int)
 
-        label_it = np.nditer(nd_label_temp, flags=['multi_index', 'buffered'])
-        while not label_it.finished:
-            # class_point = int(label[w][l][2]/10) * 255 + label[w][l][1]
-            class_point = ceil(label_it[0] / 10.)  # 只有13(算背景)类！！！！！！！！！ 上面那行类多 就是不知道咋编码
-            if class_point > 12:
-                class_point = 12
-            mask_temp[label_it.multi_index[0]][label_it.multi_index[1]][class_point] = 1
-            label_it.iternext()
+        for row in range(mask_size):
+            for col in range(mask_size):
+                if nd_label_temp[row][col]:
+                    point_class = int(nd_label_temp[row][col] / 10)
+                    if point_class > 12:
+                        point_class = 12
+                    if point_class < 0:
+                        point_class = 0
+                    mask_temp[row, col, point_class] = 1
+
+        # label_it = np.nditer(nd_label_temp, flags=['multi_index', 'buffered'])
+        # while not label_it.finished:
+        #     # class_point = int(label[w][l][2]/10) * 255 + label[w][l][1]
+        #     class_point = ceil(label_it[0] / 10.)  # 只有13(算背景)类！！！！！！！！！ 上面那行类多 就是不知道咋编码
+        #     if class_point > 12:
+        #         class_point = 12
+        #     mask_temp[label_it.multi_index[0]][label_it.multi_index[1]][class_point] = 1
+        #     label_it.iternext()
 
         img_array_hdf5[num_file, :, :, :] = img / 255.
         mask_array_hdf5[num_file, :, :, :] = mask_temp

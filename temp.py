@@ -1,5 +1,8 @@
 import glob
 import os
+from math import ceil
+
+from data_loader import Data_Loader
 from data_utils.data_augmentation import img_crop
 from random import randint
 import cv2
@@ -28,23 +31,57 @@ part_val_label_file_path = './data/part_data/val/label/'
 part_test_img_file_path = './data/part_data/test/img/'
 part_test_label_file_path = './data/part_data/test/label/'
 
+data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
+train_img_list, train_label_list = data_loader.load_train_data()
+
+print(train_label_list[0][100][100], train_label_list[1][100][100], train_label_list[2][100][100])
+
 # for _ in range(10):
 #     print(choice([0, 1]))
+# #
+# mask_size = 256
+# num_class = 13
 
-img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
-label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+# img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
+# label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+#
+# label = cv2.resize(label, dsize=(mask_size, mask_size))
+# nd_label_temp = np.empty(shape=(mask_size, mask_size))
+# nd_label_temp[:, :] = label[:, :, 2]
+# mask_temp = np.zeros(shape=(mask_size, mask_size, num_class), dtype=np.uint8)
+#
+# label_it = np.nditer(nd_label_temp, flags=['multi_index', 'buffered'])
+# while not label_it.finished:
+#     class_point = ceil(label_it[0] / 10.)
+#     print(class_point)
+#     if class_point > 12:
+#         class_point = 12
+#     mask_temp[label_it.multi_index[0], label_it.multi_index[1], class_point] = 1
+#     # print(mask_temp[label_it.multi_index[0]][label_it.multi_index[1]][class_point])
+#     label_it.iternext()
 
-temp_2d_array = np.zeros(shape=(100, 100), dtype=np.int)
 
-label_it = np.nditer(temp_2d_array, op_flags=['readwrite'])
-while not label_it.finished:
-    label_it[0] = randint(0, 12)
-    label_it.iternext()
-print(temp_2d_array)
-# temp_2d_array = [[0, 1, 1], [1, 2, 1]]
-num_class = 13
-temp_2d_array = tf.one_hot(temp_2d_array, num_class)
-print(temp_2d_array)
+# for row in range(mask_size):
+#     for col in range(mask_size):
+#         if nd_label_temp[row][col]:
+#             num_class = int(nd_label_temp[row][col] / 10)
+#             # print(row, col, num_class)
+#             mask_temp[row, col, num_class] = 1
+
+
+# print(mask_temp)
+
+# temp_2d_array = np.zeros(shape=(100, 100), dtype=np.int)
+#
+# label_it = np.nditer(temp_2d_array, op_flags=['readwrite'])
+# while not label_it.finished:
+#     label_it[0] = randint(0, 12)
+#     label_it.iternext()
+# print(temp_2d_array)
+# # temp_2d_array = [[0, 1, 1], [1, 2, 1]]
+# num_class = 13
+# temp_2d_array = tf.one_hot(temp_2d_array, num_class)
+# print(temp_2d_array)
 
 # img = cv2.resize(img, (256, 256))
 # nd_img = np.empty(shape=(256, 256, 3), dtype=np.uint8)
