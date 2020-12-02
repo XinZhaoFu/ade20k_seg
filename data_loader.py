@@ -23,7 +23,7 @@ class Data_Loader:
     def rewrite_hdf5_file(self):
         print('正在重写hdf5文件---------')
         print('正在重写train_hdf5文件')
-        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size)
+        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size, augmentation_mode=1)
         print('正在重写val_hdf5文件')
         get_img_mask_hdf5(file_path=self.val_file_path, mask_size=self.mask_size)
         print('正在重写test_hdf5文件')

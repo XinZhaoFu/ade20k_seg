@@ -3,11 +3,12 @@ import numpy as np
 import cv2
 
 
-def augmentation(img_list, label_list, mask_size=256):
+def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
     """
     数据量没有变化 只是对部分图片引入了翻转旋转裁剪遮盖
     不是我不想扩增数据量 本来这个函数是有一个扩增几倍的参数的 后来发现两万张图片数据量太大 实在受不了再扩增了
     如果想扩增数量可以在除翻转以外的任意一步进行扩增
+    :param erase_rate:
     :param img_list:
     :param label_list:
     :param mask_size:
@@ -44,9 +45,9 @@ def augmentation(img_list, label_list, mask_size=256):
         if erase_choice:
             cutout_gridmask_choice = choice([0, 1])
             if cutout_gridmask_choice:
-                img = gridMask(img, rate=0.5, img_size=256)
+                img = gridMask(img, rate=erase_rate, img_size=256)
             else:
-                img = cutout(img, rate=0.5, img_size=256)
+                img = cutout(img, rate=erase_rate, img_size=256)
 
         augmentation_img_list.append(img)
         augmentation_label_list.append(label)
@@ -167,3 +168,14 @@ def gridMask(ori_img, rate=0.5, img_size=256):
                    int(0.1 * img_size):int(0.1 * img_size) + img_size]
 
     return gridmask_img
+
+
+def resize_img_label_list(img_list, label_list, mask_size):
+    resize_img_list, resize_label_list = [], []
+    for img, label in zip(img_list, label_list):
+        img = cv2.resize(img, dsize=(mask_size, mask_size))
+        label = cv2.resize(label, dsize=(mask_size, mask_size))
+        resize_img_list.append(img)
+        resize_label_list.append(label)
+
+    return resize_img_list, resize_label_list

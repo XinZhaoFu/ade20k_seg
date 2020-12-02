@@ -26,9 +26,9 @@ shuffle_train_img_file_list, shuffle_train_label_file_list = shuffle_file(ori_tr
 shuffle_val_img_file_list, shuffle_val_label_file_list = shuffle_file(ori_val_img_file_list, ori_val_label_file_list)
 shuffle_test_img_file_list, shuffle_test_label_file_list = shuffle_file(ori_test_img_file_list, ori_test_label_file_list)
 
-distribution_file(shuffle_train_img_file_list[:200], shuffle_train_label_file_list[:200],
+distribution_file(shuffle_train_img_file_list[:1000], shuffle_train_label_file_list[:1000],
                   part_train_img_file_path, part_train_label_file_path)
-distribution_file(shuffle_val_img_file_list[:100], shuffle_val_label_file_list[:100],
+distribution_file(shuffle_val_img_file_list[:500], shuffle_val_label_file_list[:500],
                   part_val_img_file_path, part_val_label_file_path)
-distribution_file(shuffle_test_img_file_list[:100], shuffle_test_label_file_list[:100],
+distribution_file(shuffle_test_img_file_list[:500], shuffle_test_label_file_list[:500],
                   part_test_img_file_path, part_test_label_file_path)

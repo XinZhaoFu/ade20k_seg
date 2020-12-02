@@ -10,11 +10,12 @@ import numpy as np
 checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
 predict_save_path = './data/part_data/test/predict/'
 test_label_file_path = './data/part_data/test/label/'
+
 data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
 test_img_list, _ = data_loader.load_test_data()
 
 # 加载模型
-model = UNet_seg()
+model = UNet_seg(filters=32, img_width=256, input_channel=3, num_class=13, num_con_unit=1)
 model.compile(
     optimizer='adam',
     loss=tf.keras.losses.BinaryCrossentropy(),

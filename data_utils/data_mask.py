@@ -3,10 +3,10 @@ import numpy as np
 import cv2
 from utils import shuffle_file, write_hdf5
 from math import ceil
-from data_utils.data_augmentation import augmentation
+from data_utils.data_augmentation import augmentation, resize_img_label_list
 
 
-def get_img_mask_hdf5(file_path, mask_size=512):
+def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
     img_path = file_path + 'img/'
     label_path = file_path + 'label/'
     img_file_list = glob.glob(img_path + '*.jpg')
@@ -45,9 +45,14 @@ def get_img_mask_hdf5(file_path, mask_size=512):
         count_list_for_memory += 1
 
         if count_temp_for_memory == data_loader_batch_size or count_list_for_memory == len(img_file_list):
-            print('已加载' + str(int(count_list_for_memory/data_loader_batch_size)) + '批次')
+            print('已加载' + str(int(count_list_for_memory/data_loader_batch_size)) + '批次\t共计：' +
+                  str(int(count_list_for_memory)) + '个文件')
             count_temp_for_memory = 1
-            img_list_temp, label_list_temp = augmentation(img_list_temp, label_list_temp, mask_size=256)
+            if augmentation_mode:
+                img_list_temp, label_list_temp = augmentation(img_list_temp, label_list_temp,
+                                                              mask_size=256, erase_rate=0.2)
+            else:
+                img_list_temp, label_list_temp = resize_img_label_list(img_list_temp, label_list_temp, mask_size=256)
             img_list.extend(img_list_temp)
             label_list.extend(label_list_temp)
             img_list_temp.clear()
@@ -81,7 +86,7 @@ def get_img_mask_hdf5(file_path, mask_size=512):
         mask_array_hdf5[num_file, :, :, :] = mask_temp
         num_file += 1
         if num_file % 100 == 0:
-            print('已完成' + str(num_file/100) + '*100份独热码的编码工作')
+            print('已完成' + str(int(num_file)) + '份独热码的编码工作')
 
     write_hdf5(img_array_hdf5, file_path + 'img.hdf5')
     write_hdf5(mask_array_hdf5, file_path + 'mask.hdf5')
