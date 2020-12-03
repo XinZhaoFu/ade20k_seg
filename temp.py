@@ -1,7 +1,7 @@
 import glob
 import os
 from math import ceil
-
+from utils import onehot_to_class
 from data_loader import Data_Loader
 from data_utils.data_augmentation import img_crop
 from random import randint
@@ -31,10 +31,27 @@ part_val_label_file_path = './data/part_data/val/label/'
 part_test_img_file_path = './data/part_data/test/img/'
 part_test_label_file_path = './data/part_data/test/label/'
 
-data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
-train_img_list, train_label_list = data_loader.load_train_data()
+# a = np.array([0.9, 0.12, 0.88, 0.14, 0.25])
+# list_a = a.tolist()
+#
+# list_a_max_list = max(list_a)  # 返回最大值
+# max_index = list_a.index(max(list_a))  # 返回最大值的索引
+#
+# print(max_index)
+# onehot_temp_list = []
 
-print(train_label_list[0][100][100], train_label_list[1][100][100], train_label_list[2][100][100])
+onehot_temp = np.random.rand(1, 4, 4, 13)
+# onehot_temp_list.append(onehot_temp)
+print(onehot_temp)
+# onehot_temp = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.7]
+# onehot_temp = np.reshape(onehot_temp, newshape=(1, 1, 13))
+predict_temp = onehot_to_class(onehot_temp, mask_size=4)
+print(predict_temp)
+# onehot_to_class(onehot_temp, mask_size=1)
+# data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
+# train_img_list, train_label_list = data_loader.load_train_data()
+#
+# print(train_label_list[0][100][100], train_label_list[1][100][100], train_label_list[2][100][100])
 
 # for _ in range(10):
 #     print(choice([0, 1]))

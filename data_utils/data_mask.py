@@ -17,6 +17,10 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
 
     num_class = 13
     num_file = 0
+    #   test
+    num_test_list = []
+    for _ in range(13):
+        num_test_list.append(0)
 
     img_array_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.float16)
     mask_array_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, num_class), dtype=np.uint8)
@@ -44,10 +48,9 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
         count_temp_for_memory += 1
         count_list_for_memory += 1
 
-        if count_temp_for_memory == data_loader_batch_size or count_list_for_memory == len(img_file_list):
+        if count_temp_for_memory % data_loader_batch_size == 0 or count_list_for_memory == len(img_file_list):
             print('已加载' + str(int(count_list_for_memory/data_loader_batch_size)) + '批次\t共计：' +
                   str(int(count_list_for_memory)) + '个文件')
-            count_temp_for_memory = 1
             if augmentation_mode:
                 img_list_temp, label_list_temp = augmentation(img_list_temp, label_list_temp,
                                                               mask_size=256, erase_rate=0.2)
@@ -72,15 +75,8 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
                     if point_class < 0:
                         point_class = 0
                     mask_temp[row, col, point_class] = 1
-
-        # label_it = np.nditer(nd_label_temp, flags=['multi_index', 'buffered'])
-        # while not label_it.finished:
-        #     # class_point = int(label[w][l][2]/10) * 255 + label[w][l][1]
-        #     class_point = ceil(label_it[0] / 10.)  # 只有13(算背景)类！！！！！！！！！ 上面那行类多 就是不知道咋编码
-        #     if class_point > 12:
-        #         class_point = 12
-        #     mask_temp[label_it.multi_index[0]][label_it.multi_index[1]][class_point] = 1
-        #     label_it.iternext()
+                    # test
+                    num_test_list[point_class] += 1
 
         img_array_hdf5[num_file, :, :, :] = img / 255.
         mask_array_hdf5[num_file, :, :, :] = mask_temp
@@ -90,3 +86,6 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
 
     write_hdf5(img_array_hdf5, file_path + 'img.hdf5')
     write_hdf5(mask_array_hdf5, file_path + 'mask.hdf5')
+
+    print('逐点统计信息：')
+    print(num_test_list)

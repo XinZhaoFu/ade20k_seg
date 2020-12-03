@@ -80,3 +80,19 @@ def print_cost_time(start_time):
     """
     end_time = datetime.datetime.now()
     print('time:\t' + str(end_time - start_time).split('.')[0])
+
+
+def onehot_to_class(onehot_predict_list, mask_size=256):
+    print(onehot_predict_list.shape)
+    predict_list = []
+    for onehot_predict in onehot_predict_list:
+        predict = np.empty(shape=(mask_size, mask_size), dtype=np.uint8)
+        for row in range(mask_size):
+            for col in range(mask_size):
+                onehot_array = onehot_predict[row][col]
+                list_onehot_array = onehot_array.tolist()
+                max_index = list_onehot_array.index(max(list_onehot_array))  # 返回最大值的索引
+                predict[row, col] = max_index
+        predict_list.append(predict)
+
+    return predict_list

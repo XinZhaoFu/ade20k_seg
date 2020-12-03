@@ -1,5 +1,6 @@
 import glob
 import cv2
+from utils import onehot_to_class
 from data_loader import Data_Loader
 from model.unet import UNet_seg
 import tensorflow as tf
@@ -13,7 +14,7 @@ data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=Fal
 test_img_list, _ = data_loader.load_test_data()
 
 # 加载模型
-model = UNet_seg(filters=32, img_width=256, input_channel=3, num_class=13, num_con_unit=1)
+model = UNet_seg(filters=64, img_width=256, input_channel=3, num_class=13, num_con_unit=3)
 model.compile(
     optimizer='adam',
     loss=tf.keras.losses.BinaryCrossentropy(),
@@ -22,18 +23,24 @@ model.compile(
 
 model.load_weights(checkpoint_save_path)
 
+predict_list = model.predict(test_img_list, batch_size=12)
+print(predict_list.shape)
+print(predict_list[0][100][100], predict_list[1][200][200], predict_list[2][100][100])
+print(predict_list[20][10][100], predict_list[40][250][200], predict_list[45][8][100])
+print(predict_list[30][10][100], predict_list[50][200][3], predict_list[86][45][100])
+
+predict_list = onehot_to_class(predict_list, mask_size=256)
+
+print(predict_list[0][100][100], predict_list[1][200][200], predict_list[2][100][100])
+print(predict_list[20][10][100], predict_list[40][250][200], predict_list[45][8][100])
+print(predict_list[30][10][100], predict_list[50][200][3], predict_list[86][45][100])
+
 # 获取预测图的文件名
 test_label_list = glob.glob(test_label_file_path + '*.png')
 img_name_list = []
 for img_file in test_label_list:
     img_name = (img_file.split('\\')[-1])
     img_name_list.append(img_name)
-
-predict_list = model.predict(test_img_list, batch_size=12)
-
-print(predict_list[0][100][100], predict_list[1][200][200], predict_list[2][100][100])
-print(predict_list[20][10][100], predict_list[40][250][200], predict_list[45][8][100])
-print(predict_list[30][10][100], predict_list[50][200][3], predict_list[86][45][100])
 
 num_test_list = []
 for _ in range(13):
@@ -47,10 +54,8 @@ for predict in predict_list:
 
     for row in range(256):
         for col in range(256):
-            for num_class in range(13):
-                if predict[row][col][num_class]:
-                    predict_img[row][col][2] = num_class * 10
-                    num_test_list[num_class] += 1
+            predict_img[row][col][2] = predict[row][col] * 10
+            num_test_list[predict[row][col]] += 1
 
     predict_img_list.append(predict_img)
 
