@@ -1,7 +1,7 @@
 import glob
 import os
 from math import ceil
-from utils import onehot_to_class
+from utils import onehot_to_class, load_hdf5
 from data_loader import Data_Loader
 from data_utils.data_augmentation import img_crop
 from random import randint
@@ -40,16 +40,24 @@ part_test_label_file_path = './data/part_data/test/label/'
 # print(max_index)
 # onehot_temp_list = []
 
-onehot_temp = np.random.rand(1, 4, 4, 13)
-# onehot_temp_list.append(onehot_temp)
-print(onehot_temp)
-# onehot_temp = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.7]
-# onehot_temp = np.reshape(onehot_temp, newshape=(1, 1, 13))
-predict_temp = onehot_to_class(onehot_temp, mask_size=4)
-print(predict_temp)
+# onehot_temp = np.random.rand(1, 4, 4, 13)
+# # onehot_temp_list.append(onehot_temp)
+# print(onehot_temp)
+# # onehot_temp = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.7]
+# # onehot_temp = np.reshape(onehot_temp, newshape=(1, 1, 13))
+# predict_temp = onehot_to_class(onehot_temp, mask_size=4)
+# print(predict_temp)
 # onehot_to_class(onehot_temp, mask_size=1)
 # data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
 # train_img_list, train_label_list = data_loader.load_train_data()
+# print(train_img_list.shape)
+img_temp_list = load_hdf5(in_file_path='./data/part_data/train/img_temp.hdf5')
+print(img_temp_list[100][100][100])
+label_temp_list = load_hdf5(in_file_path='./data/part_data/train/mask_temp.hdf5')
+print(label_temp_list[100][100][100])
+label_list = load_hdf5(in_file_path='./data/part_data/train/mask.hdf5')
+print(label_list[100][100][100])
+
 #
 # print(train_label_list[0][100][100], train_label_list[1][100][100], train_label_list[2][100][100])
 

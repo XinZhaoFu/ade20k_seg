@@ -1,12 +1,24 @@
 import glob
 import numpy as np
 import cv2
-from utils import shuffle_file, write_hdf5
+from utils import shuffle_file, write_hdf5, load_hdf5
 from math import ceil
 from data_utils.data_augmentation import augmentation, resize_img_label_list
 
 
-def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
+def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=0):
+    """
+    本来应该直接从图像和标签文件夹抽取所有图像进行独热码编码(现在是13类) 然后存为hdf5文件
+    但是类别多了之后 hdf5文件太大 上传服务器要等太久
+    直接上传图像 若出现重复或缺失也不方便查找问题文件
+    所以弄了一个中间过程 从图像和标签文件夹抽取图像进行resize和数据扩增 然后存储为hdf5文件
+    然后在服务器上在进行独热码编码
+    这个函数就是在生成中间文件
+    :param file_path:
+    :param mask_size:
+    :param augmentation_mode:
+    :return:
+    """
     img_path = file_path + 'img/'
     label_path = file_path + 'label/'
     img_file_list = glob.glob(img_path + '*.jpg')
@@ -15,15 +27,8 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
 
     img_file_list, label_file_list = shuffle_file(img_file_list, label_file_list)
 
-    num_class = 13
-    num_file = 0
-    #   test
-    num_test_list = []
-    for _ in range(13):
-        num_test_list.append(0)
-
-    img_array_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.float16)
-    mask_array_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, num_class), dtype=np.uint8)
+    img_array_temp_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.uint8)
+    mask_array_temp_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, 3), dtype=np.uint8)
 
     img_list = []
     label_list = []
@@ -31,10 +36,10 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
     """
     这里实在是太吃内存了 在数据增强前不得不做一个截流 每次只通过一定数量的文件
     因为把resize放在数据增强这个函数里了
-    经过resize后的数据基本就能受得住了
+    缩小后的数据基本就能受得住了
     """
+
     data_loader_batch_size = 100
-    count_temp_for_memory = 1
     count_list_for_memory = 1
     img_list_temp = []
     label_list_temp = []
@@ -45,11 +50,9 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
         img_list_temp.append(img)
         label_list_temp.append(label)
 
-        count_temp_for_memory += 1
         count_list_for_memory += 1
-
-        if count_temp_for_memory % data_loader_batch_size == 0 or count_list_for_memory == len(img_file_list):
-            print('已加载' + str(int(count_list_for_memory/data_loader_batch_size)) + '批次\t共计：' +
+        if count_list_for_memory % data_loader_batch_size == 0 or count_list_for_memory == len(img_file_list):
+            print('已加载' + str(int(count_list_for_memory / data_loader_batch_size)) + '批次\t共计：' +
                   str(int(count_list_for_memory)) + '个文件')
             if augmentation_mode:
                 img_list_temp, label_list_temp = augmentation(img_list_temp, label_list_temp,
@@ -61,6 +64,30 @@ def get_img_mask_hdf5(file_path, mask_size=512, augmentation_mode=0):
             img_list_temp.clear()
             label_list_temp.clear()
 
+    num_file = 0
+    for img, label in zip(img_list, label_list):
+        img_array_temp_hdf5[num_file, :, :, :] = img
+        mask_array_temp_hdf5[num_file, :, :, :] = label
+        num_file += 1
+
+    write_hdf5(img_array_temp_hdf5, file_path + 'img_temp.hdf5')
+    write_hdf5(mask_array_temp_hdf5, file_path + 'mask_temp.hdf5')
+
+
+def get_img_mask_onehot_hdf5(file_path, num_class):
+    img_list = load_hdf5(file_path + 'img_temp.hdf5')
+    label_list = load_hdf5(file_path + 'mask_temp.hdf5')
+    list_len = img_list.shape[0]
+    mask_size = img_list.shape[1]
+
+    img_array_hdf5 = np.empty(shape=(list_len, mask_size, mask_size, 3), dtype=np.float16)
+    mask_array_hdf5 = np.empty(shape=(list_len, mask_size, mask_size, num_class), dtype=np.uint8)
+
+    num_test_list = []
+    for _ in range(13):
+        num_test_list.append(0)
+
+    num_file = 0
     for img, label in zip(img_list, label_list):
         nd_label_temp = np.empty(shape=(mask_size, mask_size))
         nd_label_temp[:, :] = label[:, :, 2]
