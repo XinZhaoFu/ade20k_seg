@@ -77,6 +77,7 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=0):
 def get_img_mask_onehot_hdf5(file_path, num_class):
     img_list = load_hdf5(file_path + 'img_temp.hdf5')
     label_list = load_hdf5(file_path + 'mask_temp.hdf5')
+
     list_len = img_list.shape[0]
     mask_size = img_list.shape[1]
 
@@ -102,7 +103,7 @@ def get_img_mask_onehot_hdf5(file_path, num_class):
                     if point_class < 0:
                         point_class = 0
                     mask_temp[row, col, point_class] = 1
-                    # test
+                    # 逐点统计信息
                     num_test_list[point_class] += 1
 
         img_array_hdf5[num_file, :, :, :] = img / 255.
