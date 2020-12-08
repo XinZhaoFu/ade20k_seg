@@ -52,7 +52,7 @@ class Con_Block(Model):
 
 class Up_Block(Model):
     def __init__(self, filters, input_width, input_channel, num_con_unit=1):
-        super().__init__()
+        super(Up_Block).__init__()
         self.filters = filters
         self.input_width = input_width
         self.input_channel = input_channel
