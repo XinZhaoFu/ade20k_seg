@@ -5,9 +5,6 @@ from model.network_utils import conv_bn_activation, sep_conv_bn_activation
 
 
 class Deeplab_v3_plus(Model):
-    """
-    降采样次数和升采样次数还没对上呢 但我心有疲惫命有坎坷 唉 等改完论文再回来改
-    """
     def __init__(self, num_class, num_middle):
         super(Deeplab_v3_plus, self).__init__()
         self.num_class = num_class
@@ -61,10 +58,10 @@ class Deeplab_v3_plus(Model):
             add_middle = add([con_middle_3, con_res_middle])
 
         # exit flow
-        con_res_21 = conv_bn_activation(inputs=add_middle, filters=1024, kernel_size=(1, 1), strides=2)
+        con_res_21 = conv_bn_activation(inputs=add_middle, filters=1024, kernel_size=(1, 1))
         con21_1 = sep_conv_bn_activation(inputs=add_middle, filters=728, kernel_size=(3, 3))
         con21_2 = sep_conv_bn_activation(inputs=con21_1, filters=1024, kernel_size=(3, 3))
-        con21_3 = sep_conv_bn_activation(inputs=con21_2, filters=1024, kernel_size=(3, 3), strides=2)
+        con21_3 = sep_conv_bn_activation(inputs=con21_2, filters=1024, kernel_size=(3, 3))
         add21 = add([con21_3, con_res_21])
 
         con22_1 = sep_conv_bn_activation(inputs=add21, filters=1536, kernel_size=(3, 3))
