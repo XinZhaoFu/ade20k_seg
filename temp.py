@@ -14,8 +14,8 @@ import tensorflow as tf
 from random import choice
 from data_utils.data_augmentation import augmentation
 
-
 np.set_printoptions(threshold=np.inf)
+
 # ori_img_file_path = './data/ori-img/'
 # ori_label_file_path = './data/ori-label/'
 #
@@ -51,12 +51,13 @@ part_test_label_file_path = './data/part_data/test/label/'
 # data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
 # train_img_list, train_label_list = data_loader.load_train_data()
 # print(train_img_list.shape)
-img_temp_list = load_hdf5(in_file_path='./data/part_data/train/img_temp.hdf5')
-print(img_temp_list[100][100][100])
-label_temp_list = load_hdf5(in_file_path='./data/part_data/train/mask_temp.hdf5')
-print(label_temp_list[100][100][100])
-label_list = load_hdf5(in_file_path='./data/part_data/train/mask.hdf5')
-print(label_list[100][100][100])
+
+# img_temp_list = load_hdf5(in_file_path='./data/part_data/train/img_temp.hdf5')
+# print(img_temp_list[100][100][100])
+# label_temp_list = load_hdf5(in_file_path='./data/part_data/train/mask_temp.hdf5')
+# print(label_temp_list[100][100][100])
+# label_list = load_hdf5(in_file_path='./data/part_data/train/mask.hdf5')
+# print(label_list[100][100][100])
 
 #
 # print(train_label_list[0][100][100], train_label_list[1][100][100], train_label_list[2][100][100])

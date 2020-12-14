@@ -9,7 +9,7 @@ from utils import print_cost_time
 start_time = datetime.datetime.now()
 load_weights = False
 # checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
-checkpoint_save_path = './checkpoint/deeplabv3+_demo1.ckpt'
+checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
 batch_size = 8
 epochs = 0
 
@@ -19,8 +19,13 @@ data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_temp_hdf
 train_img, train_label = data_loader.load_train_data()
 val_img, val_label = data_loader.load_val_data()
 
+print(train_img.shape)
+print(train_label.shape)
+print(val_img.shape)
+print(val_label.shape)
+
 # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=13, num_con_unit=2)
-model = Deeplab_v3_plus(num_class=13, num_middle=16)
+model = Deeplab_v3_plus(num_class=13, num_middle=8, img_size=256, input_channel=3)
 
 model.compile(
     optimizer='adam',
@@ -42,9 +47,8 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 )
 
 history = model.fit(
-    train_img, train_label, batch_size=batch_size, epochs=epochs,
-    verbose=2, validation_data=(val_img, val_label), validation_freq=1,
-    callbacks=[checkpoint_callback]
+    train_img, train_label, batch_size=batch_size, epochs=epochs, verbose=2,
+    validation_data=(val_img, val_label), validation_freq=1, callbacks=[checkpoint_callback]
 )
 
 model.summary()

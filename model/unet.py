@@ -13,10 +13,8 @@ class Con_Unit(Model):
         self.follow_input_shape = (width, width, self.filters)
         self.activation = activation
 
-        # self.con = Conv2D(filters=self.filters, kernel_size=(3, 3), input_shape=self.init_input_shape,
-        #                   padding='same', use_bias=False, kernel_regularizer=regularizers.l2())
         self.con = Conv2D(filters=self.filters, kernel_size=(3, 3), input_shape=self.init_input_shape,
-                          padding='same', use_bias=False)
+                          padding='same', use_bias=False, kernel_regularizer=regularizers.l2())
         self.bn = BatchNormalization(input_shape=self.follow_input_shape)
         self.act = Activation(self.activation)
 

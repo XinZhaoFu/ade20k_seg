@@ -1,88 +1,188 @@
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, MaxPooling2D, \
-    UpSampling2D, concatenate, SeparableConv2D, add
-from model.network_utils import conv_bn_activation, sep_conv_bn_activation
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, UpSampling2D, concatenate, add
+from model.network_utils import Con_Bn_Act, Sep_Con_Bn_Act
 
 
 class Deeplab_v3_plus(Model):
-    def __init__(self, num_class, num_middle):
+    def __init__(self, num_class, num_middle, img_size=256, input_channel=3):
         super(Deeplab_v3_plus, self).__init__()
         self.num_class = num_class
         self.num_middle = num_middle
+        self.img_size = img_size
+        self.input_channel = input_channel
 
-    def __call__(self, inputs):
-        add2, back_bone_out = self._xception_back_bone(inputs)
+        self.backbone = Xception_BackBone(num_middle=self.num_middle, img_size=self.img_size,
+                                          input_channel=self.input_channel)
+        self.aspp = Aspp(img_size=int(self.img_size / 16), input_channel=2048, filters=256)
+        self.aspp_up = UpSampling2D(size=(4, 4), name='aspp_up')
+        self.con_low = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=128, kernel_size=(1, 1),
+                                  name='con_low')
+        self.con_concat = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=512,
+                                     kernel_size=(3, 3), name='con_concat')
+        self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
+        self.out_con = Con_Bn_Act(filters=self.num_class, img_size=self.img_size, input_channel=512,
+                              kernel_size=(3, 3), activation='softmax', name='out')
 
-        aspp = self._aspp(back_bone_out)
-        aspp_up = UpSampling2D(size=(4, 4))(aspp)
-        con_add2 = conv_bn_activation(inputs=add2, filters=256, kernel_size=(1, 1))
-        concat = concatenate([aspp_up, con_add2], axis=3)
+    def call(self, inputs):
+        print(inputs.shape)
+        backbone_low2, backbone_out = self.backbone(inputs)
+        aspp = self.aspp(backbone_out)
+        aspp_up = self.aspp_up(aspp)
 
-        con_concat = conv_bn_activation(inputs=concat, filters=256, kernel_size=(3, 3))
-        up = UpSampling2D(size=(4, 4))(con_concat)
+        con_low = self.con_low(backbone_low2)
 
-        out = conv_bn_activation(inputs=up, filters=self.num_class, kernel_size=(3, 3), activation='softmax')
+        concat = concatenate([aspp_up, con_low], axis=3)
+        con_concat = self.con_concat(concat)
+        up = self.up_concat(con_concat)
+        out = self.out_con(up)
 
         return out
 
-    def _xception_back_bone(self, inputs):
-        #   entry flow
-        con1_1 = conv_bn_activation(inputs=inputs, filters=32, kernel_size=(3, 3), strides=2)
-        con1_2 = conv_bn_activation(inputs=con1_1, filters=64, kernel_size=(3, 3))
 
-        con_res_2 = conv_bn_activation(inputs=con1_2, filters=128, kernel_size=(1, 1), strides=2)
-        con2_1 = sep_conv_bn_activation(inputs=con1_2, filters=128, kernel_size=(3, 3))
-        con2_2 = sep_conv_bn_activation(inputs=con2_1, filters=128, kernel_size=(3, 3))
-        con2_3 = sep_conv_bn_activation(inputs=con2_2, filters=128, kernel_size=(3, 3), strides=2)
+class Xception_BackBone(Model):
+    def __init__(self, num_middle, img_size, input_channel):
+        super(Xception_BackBone, self).__init__()
+        self.num_middle = num_middle
+        self.img_size = img_size
+        self.input_channel = input_channel
+
+        #   entry flow
+        self.entry_con1_1 = Con_Bn_Act(filters=32, img_size=self.img_size, input_channel=self.input_channel,
+                                       strides=2, name='entry_con1_1')
+        self.entry_con1_2 = Con_Bn_Act(filters=64, img_size=int(self.img_size / 2), input_channel=32,
+                                       name='entry_con1_2')
+
+        self.entry_con_res_2 = Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=64,
+                                          kernel_size=(1, 1), strides=2, name='entry_con_res_2')
+        self.entry_sep_con2_1 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=64,
+                                               name='entry_sep_con2_1')
+        self.entry_sep_con2_2 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
+                                               name='entry_sep_con2_2')
+        self.entry_sep_con2_3 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
+                                               strides=2, name='entry_sep_con2_3')
+
+        self.entry_con_res_3 = Con_Bn_Act(filters=256, img_size=int(self.img_size / 2), input_channel=128,
+                                          kernel_size=(1, 1), strides=2, name='entry_con_res_3')
+        self.entry_sep_con3_1 = Sep_Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=128,
+                                               name='entry_sep_con3_1')
+        self.entry_sep_con3_2 = Sep_Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=256,
+                                               name='entry_sep_con3_2')
+        self.entry_sep_con3_3 = Sep_Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=256,
+                                               strides=2, name='entry_sep_con3_3')
+
+        self.entry_con_res_4 = Con_Bn_Act(filters=728, img_size=int(self.img_size / 8), input_channel=256,
+                                          kernel_size=(1, 1), strides=2, name='entry_con_res_4')
+        self.entry_sep_con4_1 = Sep_Con_Bn_Act(filters=728, img_size=int(self.img_size / 8), input_channel=256,
+                                               name='entry_sep_con4_1')
+        self.entry_sep_con4_2 = Sep_Con_Bn_Act(filters=728, img_size=int(self.img_size / 8), input_channel=728,
+                                               name='entry_sep_con4_2')
+        self.entry_sep_con4_3 = Sep_Con_Bn_Act(filters=728, img_size=int(self.img_size / 8), input_channel=728,
+                                               kernel_size=(3, 3), strides=2, name='entry_sep_con4_3')
+
+        # middle flow
+        self.middle_con_res_middle = Con_Bn_Act(filters=728, img_size=int(self.img_size / 16), input_channel=728,
+                                                kernel_size=(1, 1), name='middle_con_res_middle')
+        self.middle_sep_con_middle_x3 = Sep_Con_Bn_Act(filters=728, img_size=int(self.img_size / 16),
+                                                       input_channel=728, name='middle_sep_con_middle_x3')
+
+        # exit flow
+        self.exit_con_res_1 = Con_Bn_Act(filters=1024, img_size=int(self.img_size / 16), input_channel=728,
+                                         kernel_size=(1, 1), name='exit_con_res_1')
+        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=1024, img_size=int(self.img_size / 16), input_channel=728,
+                                              name='exit_sep_con1_1')
+        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=1024, img_size=int(self.img_size / 16), input_channel=1024,
+                                               name='exit_sep_con1_x2')
+
+        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=1536, img_size=int(self.img_size / 16),
+                                              input_channel=1024, name='exit_sep_con2_1')
+        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=1536, img_size=int(self.img_size / 16),
+                                              input_channel=1536, name='exit_sep_con2_2')
+        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=2048, img_size=int(self.img_size / 16),
+                                              input_channel=1536, name='exit_sep_con2_3')
+
+    def call(self, inputs):
+        #   entry flow
+        con1_1 = self.entry_con1_1(inputs)
+        con1_2 = self.entry_con1_2(con1_1)
+
+        con_res_2 = self.entry_con_res_2(con1_2)
+        con2_1 = self.entry_sep_con2_1(con1_2)
+        con2_2 = self.entry_sep_con2_2(con2_1)
+        con2_3 = self.entry_sep_con2_3(con2_2)
         add2 = add([con2_3, con_res_2])
 
-        con_res_3 = conv_bn_activation(inputs=add2, filters=256, kernel_size=(1, 1), strides=2)
-        con3_1 = sep_conv_bn_activation(inputs=add2, filters=256, kernel_size=(3, 3))
-        con3_2 = sep_conv_bn_activation(inputs=con3_1, filters=256, kernel_size=(3, 3))
-        con3_3 = sep_conv_bn_activation(inputs=con3_2, filters=256, kernel_size=(3, 3), strides=2)
+        con_res_3 = self.entry_con_res_3(add2)
+        con3_1 = self.entry_sep_con3_1(add2)
+        con3_2 = self.entry_sep_con3_2(con3_1)
+        con3_3 = self.entry_sep_con3_3(con3_2)
         add3 = add([con3_3, con_res_3])
 
-        con_res_4 = conv_bn_activation(inputs=add3, filters=728, kernel_size=(1, 1), strides=2)
-        con4_1 = sep_conv_bn_activation(inputs=add3, filters=728, kernel_size=(3, 3))
-        con4_2 = sep_conv_bn_activation(inputs=con4_1, filters=728, kernel_size=(3, 3))
-        con4_3 = sep_conv_bn_activation(inputs=con4_2, filters=728, kernel_size=(3, 3), strides=2)
+        con_res_4 = self.entry_con_res_4(add3)
+        con4_1 = self.entry_sep_con4_1(add3)
+        con4_2 = self.entry_sep_con4_2(con4_1)
+        con4_3 = self.entry_sep_con4_3(con4_2)
         add4 = add([con4_3, con_res_4])
 
         # middle flow
         add_middle = add4
         for _ in range(self.num_middle):
-            con_res_middle = conv_bn_activation(inputs=add_middle, filters=728, kernel_size=(1, 1))
-            con_middle_1 = sep_conv_bn_activation(inputs=add_middle, filters=728, kernel_size=(3, 3))
-            con_middle_2 = sep_conv_bn_activation(inputs=con_middle_1, filters=728, kernel_size=(3, 3))
-            con_middle_3 = sep_conv_bn_activation(inputs=con_middle_2, filters=728, kernel_size=(3, 3))
+            con_res_middle = self.middle_con_res_middle(add_middle)
+            con_middle_1 = self.middle_sep_con_middle_x3(add_middle)
+            con_middle_2 = self.middle_sep_con_middle_x3(con_middle_1)
+            con_middle_3 = self.middle_sep_con_middle_x3(con_middle_2)
             add_middle = add([con_middle_3, con_res_middle])
 
         # exit flow
-        con_res_21 = conv_bn_activation(inputs=add_middle, filters=1024, kernel_size=(1, 1))
-        con21_1 = sep_conv_bn_activation(inputs=add_middle, filters=728, kernel_size=(3, 3))
-        con21_2 = sep_conv_bn_activation(inputs=con21_1, filters=1024, kernel_size=(3, 3))
-        con21_3 = sep_conv_bn_activation(inputs=con21_2, filters=1024, kernel_size=(3, 3))
-        add21 = add([con21_3, con_res_21])
+        con_res_e1 = self.exit_con_res_1(add_middle)
+        con_e1_1 = self.exit_sep_con1_1(add_middle)
+        con_e1_2 = self.exit_sep_con1_x2(con_e1_1)
+        con_e1_3 = self.exit_sep_con1_x2(con_e1_2)
+        add_e1 = add([con_e1_3, con_res_e1])
 
-        con22_1 = sep_conv_bn_activation(inputs=add21, filters=1536, kernel_size=(3, 3))
-        con22_2 = sep_conv_bn_activation(inputs=con22_1, filters=1536, kernel_size=(3, 3))
-        out = sep_conv_bn_activation(inputs=con22_2, filters=2048, kernel_size=(3, 3))
+        con_e2_1 = self.exit_sep_con2_1(add_e1)
+        con_e2_2 = self.exit_sep_con2_2(con_e2_1)
+        out = self.exit_sep_con2_3(con_e2_2)
 
         return [add2, out]
 
-    def _aspp(self, inputs, filters=256):
-        con1x1 = Conv2D(filters=filters, kernel_size=(1, 1), padding='same')(inputs)
 
-        dila_con6x6 = Conv2D(filters=filters, kernel_size=(3, 3), padding='same', dilation_rate=6)(inputs)
-        dila_con12x12 = Conv2D(filters=filters, kernel_size=(3, 3), padding='same', dilation_rate=12)(inputs)
-        dila_con18x18 = Conv2D(filters=filters, kernel_size=(3, 3), padding='same', dilation_rate=18)(inputs)
+class Aspp(Model):
+    def __init__(self, img_size, input_channel=2048, filters=256):
+        super(Aspp, self).__init__()
+        self.filters = filters
+        self.img_size = img_size
+        self.input_channel = input_channel
 
-        pooling_1 = MaxPooling2D()(inputs)
-        pooling_2 = Conv2D(filters=filters, kernel_size=(1, 1), padding='same')(pooling_1)
-        pooling_3 = UpSampling2D()(pooling_2)
+        self.con1x1 = Conv2D(filters=self.filters, input_shape=(self.img_size, self.img_size, self.input_channel),
+                             kernel_size=(1, 1), padding='same', name='aspp_con1x1')
+
+        self.dila_con1 = Conv2D(filters=self.filters, input_shape=(self.img_size, self.img_size, self.input_channel),
+                                kernel_size=(3, 3), dilation_rate=2, padding='same', name='aspp_dila_con1')
+        self.dila_con2 = Conv2D(filters=self.filters, input_shape=(self.img_size, self.img_size, self.input_channel),
+                                kernel_size=(3, 3), dilation_rate=3, padding='same', name='aspp_dila_con2')
+        self.dila_con3 = Conv2D(filters=self.filters, input_shape=(self.img_size, self.img_size, self.input_channel),
+                                kernel_size=(3, 3), dilation_rate=4, padding='same', name='aspp_dila_con3')
+
+        self.pooling_1 = MaxPooling2D(name='aspp_pooling_pooling')
+        self.pooling_2 = Conv2D(filters=self.filters, input_shape=(self.img_size, self.img_size, self.input_channel),
+                                kernel_size=(1, 1), padding='same', name='aspp_pooling_con1x1')
+        self.pooling_3 = UpSampling2D(name='aspp_pooling_upsampling')
+
+        self.concat_2 = Con_Bn_Act(filters=self.filters, img_size=self.img_size, input_channel=self.filters*5,
+                               kernel_size=(1, 1), padding='same', name='aspp_concate_con1x1')
+
+    def call(self, inputs):
+        con1x1 = self.con1x1(inputs)
+
+        dila_con6x6 = self.dila_con1(inputs)
+        dila_con12x12 = self.dila_con2(inputs)
+        dila_con18x18 = self.dila_con3(inputs)
+
+        pooling_1 = self.pooling_1(inputs)
+        pooling_2 = self.pooling_2(pooling_1)
+        pooling_3 = self.pooling_3(pooling_2)
 
         concat_1 = concatenate([con1x1, dila_con6x6, dila_con12x12, dila_con18x18, pooling_3], axis=3)
-        concat_2 = Conv2D(filters=filters, kernel_size=(1, 1), padding='same', use_bias=False)(concat_1)
-        out = BatchNormalization()(concat_2)
+        out = self.concat_2(concat_1)
 
         return out
