@@ -6,11 +6,11 @@ from model.unet import UNet_seg
 import tensorflow as tf
 import numpy as np
 
-checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
+checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
 predict_save_path = './data/part_data/test/predict/'
 test_label_file_path = './data/part_data/test/label/'
 
-data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
+data_loader = Data_Loader(load_file_mode='part', mask_size=256)
 test_img_list, _ = data_loader.load_test_data()
 
 # 加载模型

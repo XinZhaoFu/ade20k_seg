@@ -24,7 +24,6 @@ class Deeplab_v3_plus(Model):
                               kernel_size=(3, 3), activation='softmax', name='out')
 
     def call(self, inputs):
-        print(inputs.shape)
         backbone_low2, backbone_out = self.backbone(inputs)
         aspp = self.aspp(backbone_out)
         aspp_up = self.aspp_up(aspp)
