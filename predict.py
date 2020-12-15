@@ -45,7 +45,6 @@ for img_file in test_label_list:
 num_test_list = []
 for _ in range(13):
     num_test_list.append(0)
-print(num_test_list)
 
 predict_img_list = []
 for predict in predict_list:
