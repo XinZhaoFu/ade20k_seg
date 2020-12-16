@@ -13,8 +13,23 @@ import scipy
 import tensorflow as tf
 from random import choice
 from data_utils.data_augmentation import augmentation
+from PIL import Image
 
 np.set_printoptions(threshold=np.inf)
+
+# mat_path = './data/index_ade20k.mat'
+# mat_path = './data/color150.mat'
+# mat_data = scio.loadmat(mat_path)
+# print(mat_data.keys())
+# data = mat_data['colors']
+# np.savetxt('./data/color150.csv', data, fmt='%d', delimiter=',')
+
+# print(type(mat_data))
+# colors = mat_data['colors']
+# print(colors.shape)
+# print(colors)
+# print(mat_data.shape)
+# print(mat_data[0][0])
 
 # ori_img_file_path = './data/ori-img/'
 # ori_label_file_path = './data/ori-label/'
@@ -69,7 +84,10 @@ part_test_label_file_path = './data/part_data/test/label/'
 # num_class = 13
 
 # img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
-# label = cv2.imread('./data/part_data/train/label/ADE_train_00000065_seg.png')
+label = np.array(cv2.imread('./data/demo1.png'))
+pil_image = Image.fromarray(label.astype(dtype=np.uint8))
+with tf.io.gfile.GFile('./data/test.png', mode='w') as f:
+    pil_image.save(f, 'PNG')
 #
 # label = cv2.resize(label, dsize=(mask_size, mask_size))
 # nd_label_temp = np.empty(shape=(mask_size, mask_size))
@@ -243,14 +261,7 @@ part_test_label_file_path = './data/part_data/test/label/'
 #     dfdata.to_csv(outputFile, index=False)
 
 
-# mat_path = './data/color150.mat'
-# mat_data = scio.loadmat(mat_path)
-# print(mat_data.keys())
-# # print(type(mat_data))
-# colors = mat_data['colors']
-# print(colors)
-# print(data.shape)
-# print(data[0][0])
+
 
 # mat_path = './data/index_ade20k.mat'
 # mat_data = scio.loadmat(mat_path)
