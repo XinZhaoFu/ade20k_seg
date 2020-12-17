@@ -16,6 +16,18 @@ from data_utils.data_augmentation import augmentation
 from PIL import Image
 
 np.set_printoptions(threshold=np.inf)
+#
+list = np.zeros(shape=20)
+result = np.empty(shape=(2, 2))
+list[2] = 1
+list[19] = 2
+i_result = 0
+for i in range(len(list)):
+    if list[i]:
+        result[i_result, 0] = i
+        result[i_result, 1] = list[i]
+        i_result += 1
+np.savetxt('./data/test.csv', result, fmt='%d', delimiter=',')
 
 # mat_path = './data/index_ade20k.mat'
 # mat_path = './data/color150.mat'
@@ -83,12 +95,12 @@ part_test_label_file_path = './data/part_data/test/label/'
 # mask_size = 256
 # num_class = 13
 
-# img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
-label = np.array(cv2.imread('./data/demo1.png'))
-pil_image = Image.fromarray(label.astype(dtype=np.uint8))
-with tf.io.gfile.GFile('./data/test.png', mode='w') as f:
-    pil_image.save(f, 'PNG')
-#
+# # img = cv2.imread('./data/part_data/train/img/ADE_train_00000065.jpg')
+# label = np.array(cv2.imread('./data/demo1.png'))
+# pil_image = Image.fromarray(label.astype(dtype=np.uint8))
+# with tf.io.gfile.GFile('./data/test.png', mode='w') as f:
+#     pil_image.save(f, 'PNG')
+# #
 # label = cv2.resize(label, dsize=(mask_size, mask_size))
 # nd_label_temp = np.empty(shape=(mask_size, mask_size))
 # nd_label_temp[:, :] = label[:, :, 2]
