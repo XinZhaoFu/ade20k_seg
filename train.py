@@ -14,7 +14,7 @@ batch_size = 8
 epochs = 0
 
 #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all
-data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_temp_hdf5=False, rewrite_onehot_hdf5=False)
+data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_temp_hdf5=True)
 
 train_img, train_label = data_loader.load_train_data()
 val_img, val_label = data_loader.load_val_data()
@@ -25,11 +25,11 @@ print(val_img.shape)
 print(val_label.shape)
 
 # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=13, num_con_unit=2)
-model = Deeplab_v3_plus(num_class=13, num_middle=8, img_size=256, input_channel=3)
+model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3)
 
 model.compile(
     optimizer='adam',
-    loss=tf.keras.losses.BinaryCrossentropy(),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
     metrics=['accuracy']
 )
 

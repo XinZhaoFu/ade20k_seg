@@ -4,9 +4,9 @@ from model.network_utils import Con_Bn_Act, Sep_Con_Bn_Act
 
 
 class Deeplab_v3_plus(Model):
-    def __init__(self, num_class, num_middle, img_size=256, input_channel=3):
+    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3):
         super(Deeplab_v3_plus, self).__init__()
-        self.num_class = num_class
+        self.final_filters = final_filters
         self.num_middle = num_middle
         self.img_size = img_size
         self.input_channel = input_channel
@@ -20,8 +20,8 @@ class Deeplab_v3_plus(Model):
         self.con_concat = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=512,
                                      kernel_size=(3, 3), name='con_concat')
         self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
-        self.out_con = Con_Bn_Act(filters=self.num_class, img_size=self.img_size, input_channel=512,
-                              kernel_size=(3, 3), activation='softmax', name='out')
+        self.out_con = Con_Bn_Act(filters=self.final_filters, img_size=self.img_size, input_channel=512,
+                                  kernel_size=(3, 3), activation='softmax', name='out')
 
     def call(self, inputs):
         backbone_low2, backbone_out = self.backbone(inputs)

@@ -1,14 +1,12 @@
 from utils import load_hdf5
-from data_utils.data_mask import get_img_mask_hdf5, get_img_mask_onehot_hdf5
+from data_utils.data_mask import get_img_mask_hdf5
 
 
 class Data_Loader:
-    def __init__(self, load_file_mode, mask_size, rewrite_temp_hdf5=False, rewrite_onehot_hdf5=False,
-                 contain_test=False):
+    def __init__(self, load_file_mode, mask_size, rewrite_temp_hdf5=False, contain_test=False):
         self.load_file_mode = load_file_mode
         self.mask_size = mask_size
         self.rewrite_temp_hdf5 = rewrite_temp_hdf5
-        self.rewrite_onehot_dhf5 = rewrite_onehot_hdf5
         self.contain_test = contain_test
 
         if load_file_mode == 'part':
@@ -20,36 +18,19 @@ class Data_Loader:
             self.val_file_path = './data/val/'
             self.test_file_path = './data/test/'
 
-        if rewrite_onehot_hdf5:
-            if rewrite_temp_hdf5:
-                self.rewrite_temp_hdf5_file()
-            self.rewrite_onehot_hdf5_file()
-
-    def rewrite_onehot_hdf5_file(self):
-        print('正在重写独热码hdf5文件---------')
-        print('正在重写独热码train_hdf5文件')
-        get_img_mask_onehot_hdf5(file_path=self.train_file_path, num_class=13)
-        print('正在重写独热码val_hdf5文件')
-        get_img_mask_onehot_hdf5(file_path=self.val_file_path, num_class=13)
-        if self.contain_test:
-            print('正在重写独热码test_hdf5文件')
-            get_img_mask_onehot_hdf5(file_path=self.test_file_path, num_class=13)
-        print('独热码重写完了')
+        if self.rewrite_temp_hdf5:
+            self.rewrite_temp_hdf5_file()
 
     def rewrite_temp_hdf5_file(self):
-        """
-        重写中间态
-        :return:
-        """
-        print('正在重写中间态hdf5文件---------')
-        print('正在重写中间态train_temp_hdf5文件')
+        print('正在重写hdf5文件---------')
+        print('正在重写train_temp_hdf5文件')
         get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size, augmentation_mode=1)
-        print('正在重写中间态val_temp_hdf5文件')
+        print('正在重写val_temp_hdf5文件')
         get_img_mask_hdf5(file_path=self.val_file_path, mask_size=self.mask_size)
         if self.contain_test:
-            print('正在重写中间态test_temp_hdf5文件')
+            print('正在重写test_temp_hdf5文件')
             get_img_mask_hdf5(file_path=self.test_file_path, mask_size=self.mask_size)
-        print('中间态重写完了')
+        print('重写完了')
 
     def load_train_data(self):
         print('正在载入训练集')

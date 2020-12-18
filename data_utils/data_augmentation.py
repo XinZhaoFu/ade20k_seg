@@ -6,7 +6,7 @@ import cv2
 def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
     """
     数据量没有变化 只是对部分图片引入了翻转旋转裁剪遮盖
-    不是我不想扩增数据量 本来这个函数是有一个扩增几倍的参数的 后来发现两万张图片数据量太大 实在受不了再扩增了
+    不是我不想扩增数据量 本来这个函数是有一个扩增几倍的参数的 后来发现两万张图片数据量太多了 就不想扩了
     如果想扩增数量可以在除翻转以外的任意一步进行扩增
     :param erase_rate:
     :param img_list:
@@ -26,9 +26,8 @@ def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
         if crop_choice:
             img, label = img_crop(img, label, mask_size)
 
-        assert img.shape == label.shape
         width, length, channel = img.shape
-        if width != mask_size or length != mask_size:
+        if width != mask_size or length != mask_size or img.shape != label.shape:
             img = cv2.resize(img, dsize=(mask_size, mask_size))
             label = cv2.resize(label, dsize=(mask_size, mask_size))
 
@@ -55,29 +54,29 @@ def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
     return augmentation_img_list, augmentation_label_list
 
 
-def img_crop(ori_img, ori_label, mask_size):
+def img_crop(ori_img, ori_label, crop_size):
     """
     随机裁剪该图的部分区域 并resize为制定大小
     :param ori_img:
     :param ori_label:
-    :param mask_size:
+    :param crop_size:
     :return:
     """
-    assert mask_size > 0
+    assert crop_size > 0
 
-    width, length, channel = ori_img.shape
-    if width <= mask_size or length <= mask_size:
-        return ori_img, ori_label
+    resize_img = cv2.resize(ori_img, dsize=(2 * crop_size, 2 * crop_size))
+    resize_label = cv2.resize(ori_label, dsize=(2 * crop_size, 2 * crop_size))
 
-    crop_size = randint(mask_size, min(width, length))
-    random_point_x = randint(0, int(width - crop_size))
-    random_point_y = randint(0, int(length - crop_size))
+    random_point_x = randint(1, int(2 * crop_size - crop_size - 1))
+    random_point_y = randint(1, int(2 * crop_size - crop_size - 1))
 
-    crop_img_temp = ori_img[random_point_x:random_point_x + crop_size, random_point_y:random_point_y + crop_size, :]
-    crop_img = cv2.resize(crop_img_temp, dsize=(mask_size, mask_size))
+    crop_img = np.empty(shape=(crop_size, crop_size, 3), dtype=np.uint8)
+    crop_label = np.empty(shape=(crop_size, crop_size, 3), dtype=np.uint8)
 
-    crop_label_temp = ori_label[random_point_x:random_point_x + crop_size, random_point_y:random_point_y + crop_size, :]
-    crop_label = cv2.resize(crop_label_temp, dsize=(mask_size, mask_size))
+    crop_img[:, :, :] = resize_img[random_point_x:random_point_x + crop_size,
+                        random_point_y:random_point_y + crop_size, :]
+    crop_label[:, :, :] = resize_label[random_point_x:random_point_x + crop_size,
+                          random_point_y:random_point_y + crop_size, :]
 
     return crop_img, crop_label
 

@@ -62,6 +62,14 @@ def shuffle_file(img_file_list, label_file_list):
 
 
 def distribution_file(dis_img_file_list, dis_label_file_list, dis_img_file_path, dis_label_file_path):
+    """
+    将img和label从一文件夹转至其他位置
+    :param dis_img_file_list:
+    :param dis_label_file_list:
+    :param dis_img_file_path:
+    :param dis_label_file_path:
+    :return:
+    """
     recreate_dir(dis_img_file_path)
     recreate_dir(dis_label_file_path)
     for img_file, label_file in zip(dis_img_file_list, dis_label_file_list):
@@ -83,6 +91,12 @@ def print_cost_time(start_time):
 
 
 def onehot_to_class(onehot_predict_list, mask_size=256):
+    """
+    对以独热码形式的预测转化为数值标签的形式
+    :param onehot_predict_list: 这里是一堆预测图
+    :param mask_size:
+    :return:
+    """
     print(onehot_predict_list.shape)
     predict_list = []
     for onehot_predict in onehot_predict_list:
@@ -96,3 +110,15 @@ def onehot_to_class(onehot_predict_list, mask_size=256):
         predict_list.append(predict)
 
     return predict_list
+
+
+def onehot(self, label, num_classes):
+    """
+    生成该标签的独热码数组
+    :param self:
+    :param label:
+    :param num_classes:
+    :return:
+    """
+    onehot_label = np.eye(num_classes)[label]
+    return onehot_label

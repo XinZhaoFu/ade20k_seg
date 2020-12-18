@@ -16,18 +16,25 @@ from data_utils.data_augmentation import augmentation
 from PIL import Image
 
 np.set_printoptions(threshold=np.inf)
+
+label = cv2.imread('./data/ori_annotation/ADE_train_00000001.png')
+print(label.shape)
+# label = 3
+# num_class = 10
+# label = np.eye(num_class)[3]
+# print(label)
 #
-list = np.zeros(shape=20)
-result = np.empty(shape=(2, 2))
-list[2] = 1
-list[19] = 2
-i_result = 0
-for i in range(len(list)):
-    if list[i]:
-        result[i_result, 0] = i
-        result[i_result, 1] = list[i]
-        i_result += 1
-np.savetxt('./data/test.csv', result, fmt='%d', delimiter=',')
+# list = np.zeros(shape=20)
+# result = np.empty(shape=(2, 2))
+# list[2] = 1
+# list[19] = 2
+# i_result = 0
+# for i in range(len(list)):
+#     if list[i]:
+#         result[i_result, 0] = i
+#         result[i_result, 1] = list[i]
+#         i_result += 1
+# np.savetxt('./data/test.csv', result, fmt='%d', delimiter=',')
 
 # mat_path = './data/index_ade20k.mat'
 # mat_path = './data/color150.mat'
