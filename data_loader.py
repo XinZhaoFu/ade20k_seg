@@ -3,11 +3,12 @@ from data_utils.data_mask import get_img_mask_hdf5
 
 
 class Data_Loader:
-    def __init__(self, load_file_mode, mask_size, rewrite_temp_hdf5=False, contain_test=False):
+    def __init__(self, load_file_mode, mask_size, rewrite_temp_hdf5=False, contain_test=False, data_augmentation=False):
         self.load_file_mode = load_file_mode
         self.mask_size = mask_size
         self.rewrite_temp_hdf5 = rewrite_temp_hdf5
         self.contain_test = contain_test
+        self.data_augmentation = data_augmentation
 
         if load_file_mode == 'part':
             self.train_file_path = './data/part_data/train/'
@@ -24,7 +25,8 @@ class Data_Loader:
     def rewrite_temp_hdf5_file(self):
         print('正在重写hdf5文件---------')
         print('正在重写train_temp_hdf5文件')
-        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size, augmentation_mode=1)
+        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size,
+                          augmentation_mode=self.data_augmentation)
         print('正在重写val_temp_hdf5文件')
         get_img_mask_hdf5(file_path=self.val_file_path, mask_size=self.mask_size)
         if self.contain_test:

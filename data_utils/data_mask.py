@@ -5,7 +5,7 @@ from utils import shuffle_file, write_hdf5, load_hdf5
 from data_utils.data_augmentation import augmentation, resize_img_label_list
 
 
-def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=0):
+def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False):
     """
     将图像和标签存为hdf5文件
     图像格式为(size, size, 3)
@@ -56,12 +56,12 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=0):
             img_list_temp.clear()
             label_list_temp.clear()
 
-    img_array_temp_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.float16)
+    img_array_temp_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.uint8)
     mask_array_temp_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, 1), dtype=np.uint8)
 
     num_file = 0
     for img, label in zip(img_list, label_list):
-        img_array_temp_hdf5[num_file, :, :, :] = img / 255.
+        img_array_temp_hdf5[num_file, :, :, :] = img
         mask_array_temp_hdf5[num_file, :, :, 0] = label[:, :, 0]
         num_file += 1
 

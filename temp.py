@@ -17,8 +17,12 @@ from PIL import Image
 
 np.set_printoptions(threshold=np.inf)
 
-label = cv2.imread('./data/ori_annotation/ADE_train_00000001.png')
-print(label.shape)
+for _ in range(20):
+    crop_choice = choice([0, 1])
+    print(crop_choice)
+
+# label = cv2.imread('./data/ori_annotation/ADE_train_00000001.png')
+# print(label.shape)
 # label = 3
 # num_class = 10
 # label = np.eye(num_class)[3]
