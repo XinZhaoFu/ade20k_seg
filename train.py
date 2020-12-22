@@ -14,7 +14,7 @@ batch_size = 8
 epochs = 0
 
 #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all
-data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_temp_hdf5=True)
+data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=False, data_augmentation=False)
 
 train_img, train_label = data_loader.load_train_data()
 val_img, val_label = data_loader.load_val_data()

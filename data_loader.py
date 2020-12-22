@@ -3,10 +3,10 @@ from data_utils.data_mask import get_img_mask_hdf5
 
 
 class Data_Loader:
-    def __init__(self, load_file_mode, mask_size, rewrite_temp_hdf5=False, contain_test=False, data_augmentation=False):
+    def __init__(self, load_file_mode, mask_size, rewrite_hdf5=False, contain_test=False, data_augmentation=False):
         self.load_file_mode = load_file_mode
         self.mask_size = mask_size
-        self.rewrite_temp_hdf5 = rewrite_temp_hdf5
+        self.rewrite_hdf5 = rewrite_hdf5
         self.contain_test = contain_test
         self.data_augmentation = data_augmentation
 
@@ -19,7 +19,7 @@ class Data_Loader:
             self.val_file_path = './data/val/'
             self.test_file_path = './data/test/'
 
-        if self.rewrite_temp_hdf5:
+        if self.rewrite_hdf5:
             self.rewrite_temp_hdf5_file()
 
     def rewrite_temp_hdf5_file(self):

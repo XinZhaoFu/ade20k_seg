@@ -17,9 +17,9 @@ from PIL import Image
 
 np.set_printoptions(threshold=np.inf)
 
-for _ in range(20):
-    crop_choice = choice([0, 1])
-    print(crop_choice)
+# for _ in range(20):
+#     crop_choice = choice([0, 1])
+#     print(crop_choice)
 
 # label = cv2.imread('./data/ori_annotation/ADE_train_00000001.png')
 # print(label.shape)
@@ -86,8 +86,12 @@ part_test_label_file_path = './data/part_data/test/label/'
 # predict_temp = onehot_to_class(onehot_temp, mask_size=4)
 # print(predict_temp)
 # onehot_to_class(onehot_temp, mask_size=1)
-# data_loader = Data_Loader(load_file_mode='all', mask_size=256, rewrite_hdf5=False)
+# data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
 # train_img_list, train_label_list = data_loader.load_train_data()
+# train_img_list = train_img_list / 255.
+#
+# print(train_img_list[0, 100, 100, :])
+# print(train_label_list[0, 100:150, 100:150, :])
 # print(train_img_list.shape)
 
 # img_temp_list = load_hdf5(in_file_path='./data/part_data/train/img_temp.hdf5')
