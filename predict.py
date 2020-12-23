@@ -1,7 +1,7 @@
 import glob
 import cv2
 from utils import onehot_to_class
-from data_loader import Data_Loader
+from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from model.unet import UNet_seg
 import tensorflow as tf
 import numpy as np
@@ -10,7 +10,7 @@ checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
 predict_save_path = './data/part_data/test/predict/'
 test_label_file_path = './data/part_data/test/label/'
 
-data_loader = Data_Loader(load_file_mode='part', mask_size=256)
+data_loader = Data_Loader_Hdf5(load_file_mode='part', mask_size=256)
 test_img_list, _ = data_loader.load_test_data()
 
 # 加载模型

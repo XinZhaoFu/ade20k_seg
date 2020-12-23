@@ -2,7 +2,7 @@ from utils import load_hdf5
 from data_utils.data_mask import get_img_mask_hdf5
 
 
-class Data_Loader:
+class Data_Loader_Hdf5:
     def __init__(self, load_file_mode, mask_size, rewrite_hdf5=False, contain_test=False, data_augmentation=False):
         self.load_file_mode = load_file_mode
         self.mask_size = mask_size
@@ -11,13 +11,13 @@ class Data_Loader:
         self.data_augmentation = data_augmentation
 
         if load_file_mode == 'part':
-            self.train_file_path = './data/part_data/train/'
-            self.val_file_path = './data/part_data/val/'
-            self.test_file_path = './data/part_data/test/'
+            self.train_file_path = '../data/part_data/train/'
+            self.val_file_path = '../data/part_data/val/'
+            self.test_file_path = '../data/part_data/test/'
         else:
-            self.train_file_path = './data/train/'
-            self.val_file_path = './data/val/'
-            self.test_file_path = './data/test/'
+            self.train_file_path = '../data/train/'
+            self.val_file_path = '../data/val/'
+            self.test_file_path = '../data/test/'
 
         if self.rewrite_hdf5:
             self.rewrite_temp_hdf5_file()

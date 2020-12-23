@@ -1,21 +1,13 @@
-import glob
-import os
-from math import ceil
-from utils import onehot_to_class, load_hdf5
-from data_loader import Data_Loader
-from data_utils.data_augmentation import img_crop
-from random import randint
-import cv2
 import numpy as np
-import scipy.io as scio
-import pandas as pd
-import scipy
-import tensorflow as tf
-from random import choice
-from data_utils.data_augmentation import augmentation
-from PIL import Image
+from data_utils.data_loader_file import Data_Loader_File
 
 np.set_printoptions(threshold=np.inf)
+
+data_loader = Data_Loader_File(mask_size=256)
+train_img, rain_label = data_loader.load_train_data(load_file_number=1000)
+val_img, val_label = data_loader.load_val_data(load_file_number=1)
+
+print(train_img, rain_label, val_img, val_label)
 
 # for _ in range(20):
 #     crop_choice = choice([0, 1])
