@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from data_utils.data_loader_file import Data_Loader_File
+from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 
 np.set_printoptions(threshold=np.inf)
 
@@ -73,8 +74,9 @@ part_test_label_file_path = './data/part_data/test/label/'
 # predict_temp = onehot_to_class(onehot_temp, mask_size=4)
 # print(predict_temp)
 # onehot_to_class(onehot_temp, mask_size=1)
-# data_loader = Data_Loader(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
-# train_img_list, train_label_list = data_loader.load_train_data()
+data_loader = Data_Loader_Hdf5(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
+train_img_list, train_label_list = data_loader.load_train_data()
+print(len(train_img_list))
 # train_img_list = train_img_list / 255.
 #
 # print(train_img_list[0, 100, 100, :])

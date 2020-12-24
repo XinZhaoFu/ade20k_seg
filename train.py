@@ -9,11 +9,15 @@ from utils import print_cost_time
 import setproctitle
 import numpy as np
 
-# 便于他人知道是谁的程序在占着茅坑不拉屎
+# 便于他人知道是福福仔的程序在占着茅坑不拉屎
 setproctitle.setproctitle("xzf_ade")
 
 
 def parseArgs():
+    """
+    获得参数
+    :return:
+    """
     parser = argparse.ArgumentParser(description='ade20k segmentation demo')
     parser.add_argument('--mask_size', dest='mask_size', help='mask_size', default=256, type=int)
     parser.add_argument('--epochs', dest='epochs', help='epochs', default=100, type=int)
@@ -78,10 +82,10 @@ class seg_train:
         """
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=13, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=self.mask_size, input_channel=3)
+            model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3)
             model.compile(
                 optimizer='adam',
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                 metrics=['accuracy']
             )
 

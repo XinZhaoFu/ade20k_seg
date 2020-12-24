@@ -1,7 +1,6 @@
 import glob
 import numpy as np
 import cv2
-import tensorflow as tf
 from utils import shuffle_file, write_hdf5
 import gc
 from data_utils.data_augmentation import augmentation, resize_img_label_list
@@ -10,6 +9,8 @@ from data_utils.data_augmentation import augmentation, resize_img_label_list
 def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False):
     """
     将图像和标签存为hdf5文件
+    推荐皮糙肉厚的猛男在服务器上使用这种方式一次性把所有文件都读取到内存里
+    节省io时间
     图像格式为(size, size, 3)
     标签格式为(size, size, 1)
     标签总计151类(含背景)
@@ -23,6 +24,13 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False):
     img_file_list = glob.glob(img_path + '*.jpg')
     label_file_list = glob.glob(label_path + '*.png')
     assert len(img_file_list) == len(label_file_list)
+
+    # 图片补足 以batchsize为64为假想
+    num_supplement = 64 * ((len(img_file_list) // 64) + 1) - len(img_file_list)
+    img_file_supplement_list = img_file_list[:num_supplement]
+    label_file_supplement_list = label_file_list[:num_supplement]
+    img_file_list.extend(img_file_supplement_list)
+    label_file_list.extend(label_file_supplement_list)
 
     img_file_list, label_file_list = shuffle_file(img_file_list, label_file_list)
 
@@ -65,6 +73,7 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False):
     img_array_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.uint8)
     mask_array_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, 1), dtype=np.uint8)
 
+    # 这里本来是有提示信息的 后来觉得这里还蛮快的 就去掉了
     num_file = 0
     for img, label in zip(img_list, label_list):
         img_array_hdf5[num_file, :, :, :] = img

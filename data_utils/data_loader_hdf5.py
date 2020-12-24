@@ -38,12 +38,14 @@ class Data_Loader_Hdf5:
         print('正在载入训练集')
         train_img_dataset = load_hdf5(self.train_file_path + 'img.hdf5')
         train_mask_dataset = load_hdf5(self.train_file_path + 'mask.hdf5')
+        print('该次训练集调用' + str(len(train_img_dataset)) + '张图片')
         return train_img_dataset, train_mask_dataset
 
     def load_val_data(self):
         print('正在载入验证集')
         val_img_dataset = load_hdf5(self.val_file_path + 'img.hdf5')
         val_mask_dataset = load_hdf5(self.val_file_path + 'mask.hdf5')
+        print('该次验证集调用' + str(len(val_img_dataset)) + '张图片')
         return val_img_dataset, val_mask_dataset
 
     def load_test_data(self):
