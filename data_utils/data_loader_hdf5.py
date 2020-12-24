@@ -11,13 +11,13 @@ class Data_Loader_Hdf5:
         self.data_augmentation = data_augmentation
 
         if load_file_mode == 'part':
-            self.train_file_path = '../data/part_data/train/'
-            self.val_file_path = '../data/part_data/val/'
-            self.test_file_path = '../data/part_data/test/'
+            self.train_file_path = './data/part_data/train/'
+            self.val_file_path = './data/part_data/val/'
+            self.test_file_path = './data/part_data/test/'
         else:
-            self.train_file_path = '../data/train/'
-            self.val_file_path = '../data/val/'
-            self.test_file_path = '../data/test/'
+            self.train_file_path = './data/train/'
+            self.val_file_path = './data/val/'
+            self.test_file_path = './data/test/'
 
         if self.rewrite_hdf5:
             self.rewrite_temp_hdf5_file()

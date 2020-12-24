@@ -1,13 +1,8 @@
 import numpy as np
+import tensorflow as tf
 from data_utils.data_loader_file import Data_Loader_File
 
 np.set_printoptions(threshold=np.inf)
-
-data_loader = Data_Loader_File(mask_size=256)
-train_img, rain_label = data_loader.load_train_data(load_file_number=1000)
-val_img, val_label = data_loader.load_val_data(load_file_number=1)
-
-print(train_img, rain_label, val_img, val_label)
 
 # for _ in range(20):
 #     crop_choice = choice([0, 1])

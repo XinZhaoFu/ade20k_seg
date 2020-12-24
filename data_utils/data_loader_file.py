@@ -6,9 +6,9 @@ class Data_Loader_File:
         self.mask_size = mask_size
         self.data_augmentation = data_augmentation
 
-        self.train_file_path = '../data/train/'
-        self.val_file_path = '../data/val/'
-        self.test_file_path = '../data/test/'
+        self.train_file_path = './data/train/'
+        self.val_file_path = './data/val/'
+        self.test_file_path = './data/test/'
 
     def load_train_data(self, load_file_number=1000):
         print('正在载入训练集')

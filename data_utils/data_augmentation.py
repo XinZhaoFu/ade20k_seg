@@ -38,18 +38,19 @@ def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
 
         rotate_choice = choice([0, 1])
         if rotate_choice:
-            img, label = img_rotate(img, label, rot_num=1, img_size=256)
+            img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
 
         erase_choice = choice([0, 1])
         if erase_choice:
             cutout_gridmask_choice = choice([0, 1])
             if cutout_gridmask_choice:
-                img = gridMask(img, rate=erase_rate, img_size=256)
+                img = gridMask(img, rate=erase_rate, img_size=mask_size)
             else:
-                img = cutout(img, rate=erase_rate, img_size=256)
+                img = cutout(img, rate=erase_rate, img_size=mask_size)
 
         augmentation_img_list.append(img)
         augmentation_label_list.append(label)
+        assert(len(augmentation_img_list)==len(augmentation_label_list))
 
     return augmentation_img_list, augmentation_label_list
 
