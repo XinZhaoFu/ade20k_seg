@@ -4,20 +4,23 @@ from model.network_utils import Con_Bn_Act, Sep_Con_Bn_Act
 
 
 class Deeplab_v3_plus(Model):
-    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3):
+    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3, aspp_filters=256):
         super(Deeplab_v3_plus, self).__init__()
         self.final_filters = final_filters
         self.num_middle = num_middle
         self.img_size = img_size
         self.input_channel = input_channel
+        self.aspp_filters = aspp_filters
+        self.backbone_low2_filters = 256
 
         self.backbone = Xception_BackBone(num_middle=self.num_middle, img_size=self.img_size,
                                           input_channel=self.input_channel)
-        self.aspp = Aspp(img_size=int(self.img_size / 16), input_channel=2048, filters=256)
+        self.aspp = Aspp(img_size=int(self.img_size / 16), input_channel=2048, filters=self.aspp_filters)
         self.aspp_up = UpSampling2D(size=(4, 4), name='aspp_up')
-        self.con_low = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=128, kernel_size=(1, 1),
-                                  name='con_low')
-        self.con_concat = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4), input_channel=512,
+        self.con_low = Con_Bn_Act(filters=self.backbone_low2_filters, img_size=int(self.img_size / 4),
+                                  input_channel=128, kernel_size=(1, 1), name='con_low')
+        self.con_concat = Con_Bn_Act(filters=256, img_size=int(self.img_size / 4),
+                                     input_channel=self.backbone_low2_filters+self.aspp_filters,
                                      kernel_size=(3, 3), name='con_concat')
         self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
         self.out_con = Con_Bn_Act(filters=self.final_filters, img_size=self.img_size, input_channel=512,

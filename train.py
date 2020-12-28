@@ -20,7 +20,7 @@ def parseArgs():
     """
     parser = argparse.ArgumentParser(description='ade20k segmentation demo')
     parser.add_argument('--mask_size', dest='mask_size', help='mask_size', default=256, type=int)
-    parser.add_argument('--epochs', dest='epochs', help='epochs', default=100, type=int)
+    parser.add_argument('--epochs', dest='epochs', help='epochs', default=0, type=int)
     parser.add_argument('--batch_size', dest='batch_size', help='batch_size', default=1, type=int)
     parser.add_argument('--load_train_file_number', dest='load_train_file_number', help='load_train_file_number',
                         default=1000, type=int)
@@ -41,7 +41,7 @@ def parseArgs():
 
 
 class seg_train:
-    def __init__(self, load_weights=False, batch_size=8, epochs=100, load_data_mode='hdf5', mask_size=256,
+    def __init__(self, load_weights=False, batch_size=8, epochs=0, load_data_mode='hdf5', mask_size=256,
                  load_file_mode='part', load_train_file_number=1000, load_val_file_number=200,
                  rewrite_hdf5=False, data_augmentation=False):
         self.load_weights = load_weights
@@ -82,7 +82,8 @@ class seg_train:
         """
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=13, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3)
+            model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3,
+                                    aspp_filters=512)
             model.compile(
                 optimizer='adam',
                 loss=tf.keras.losses.SparseCategoricalCrossentropy(),

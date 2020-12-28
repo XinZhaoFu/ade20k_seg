@@ -3,56 +3,46 @@ import numpy as np
 import cv2
 
 
-def augmentation(img_list, label_list, mask_size=256, erase_rate=0.5):
+def augmentation(img, label, mask_size=256, erase_rate=0.5):
     """
     数据量没有变化 只是对部分图片引入了翻转旋转裁剪遮盖
     不是我不想扩增数据量 本来这个函数是有一个扩增几倍的参数的 后来发现两万张图片数据量太多了 就不想扩了
     如果想扩增数量可以在除翻转以外的任意一步进行扩增
     :param erase_rate:
-    :param img_list:
-    :param label_list:
+    :param img:
+    :param label:
     :param mask_size:
     :return:
     """
-    assert len(img_list) == len(label_list)
     assert mask_size > 0
 
-    augmentation_img_list = []
-    augmentation_label_list = []
+    crop_choice = choice([0, 1])
+    if crop_choice:
+        img, label = img_crop(img, label, mask_size)
 
-    for img, label in zip(img_list, label_list):
+    width, length, channel = img.shape
+    if width != mask_size or length != mask_size or img.shape != label.shape:
+        img = cv2.resize(img, dsize=(mask_size, mask_size))
+        label = cv2.resize(label, dsize=(mask_size, mask_size))
 
-        crop_choice = choice([0, 1])
-        if crop_choice:
-            img, label = img_crop(img, label, mask_size)
+    flip_choice = choice([0, 1])
+    if flip_choice:
+        img = cv2.flip(img, 1)
+        label = cv2.flip(label, 1)
 
-        width, length, channel = img.shape
-        if width != mask_size or length != mask_size or img.shape != label.shape:
-            img = cv2.resize(img, dsize=(mask_size, mask_size))
-            label = cv2.resize(label, dsize=(mask_size, mask_size))
+    rotate_choice = choice([0, 1])
+    if rotate_choice:
+        img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
 
-        flip_choice = choice([0, 1])
-        if flip_choice:
-            img = cv2.flip(img, 1)
-            label = cv2.flip(label, 1)
+    erase_choice = choice([0, 1])
+    if erase_choice:
+        cutout_gridmask_choice = choice([0, 1])
+        if cutout_gridmask_choice:
+            img = gridMask(img, rate=erase_rate, img_size=mask_size)
+        else:
+            img = cutout(img, rate=erase_rate, img_size=mask_size)
 
-        rotate_choice = choice([0, 1])
-        if rotate_choice:
-            img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
-
-        erase_choice = choice([0, 1])
-        if erase_choice:
-            cutout_gridmask_choice = choice([0, 1])
-            if cutout_gridmask_choice:
-                img = gridMask(img, rate=erase_rate, img_size=mask_size)
-            else:
-                img = cutout(img, rate=erase_rate, img_size=mask_size)
-
-        augmentation_img_list.append(img)
-        augmentation_label_list.append(label)
-        assert(len(augmentation_img_list)==len(augmentation_label_list))
-
-    return augmentation_img_list, augmentation_label_list
+    return img, label
 
 
 def img_crop(ori_img, ori_label, crop_size):
