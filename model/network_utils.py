@@ -4,8 +4,9 @@ from tensorflow.keras import Model, regularizers
 
 class Con_Bn_Act(Model):
     def __init__(self, filters, img_size, input_channel,  kernel_size=(3, 3), padding='same', strides=1,
-                 activation='relu', dilation_rate=1, name=None):
+                 activation='relu', dilation_rate=1, name=None, kernel_regularizer=False):
         super(Con_Bn_Act, self).__init__()
+        self.kernel_regularizer = kernel_regularizer
         self.filters = filters
         self.img_size = img_size
         self.input_channel = input_channel
@@ -16,16 +17,23 @@ class Con_Bn_Act(Model):
         self.dilation_rate = dilation_rate
         self.block_name = name
 
+        if self.kernel_regularizer:
+            self.con_regularizer = regularizers.l2()
+        else:
+            self.con_regularizer = None
+
         self.con = Conv2D(filters=self.filters, kernel_size=self.kernel_size, padding=self.padding,
                           strides=self.strides, use_bias=False, dilation_rate=(self.dilation_rate, self.dilation_rate),
-                          input_shape=(self.img_size, self.img_size, self.input_channel), name=self.block_name)
+                          input_shape=(self.img_size, self.img_size, self.input_channel), name=self.block_name,
+                          kernel_regularizer=self.con_regularizer)
         self.bn = BatchNormalization(input_shape=(self.img_size, self.img_size, self.filters))
-        self.act = Activation(self.activation)
+        if self.activation is not None:
+            self.act = Activation(self.activation)
 
     def call(self, inputs):
         con = self.con(inputs)
         bn = self.bn(con)
-        if self.kernel_size != (1, 1):
+        if self.kernel_size != (1, 1) and self.activation is not None:
             out = self.act(bn)
         else:
             out = bn

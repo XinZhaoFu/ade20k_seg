@@ -5,6 +5,7 @@ import tensorflow as tf
 import os
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from data_utils.data_loader_file import Data_Loader_File
+from model.unet import UNet_seg
 from utils import print_cost_time
 import setproctitle
 import numpy as np
@@ -33,7 +34,7 @@ def parseArgs():
     parser.add_argument('--load_weights', dest='load_weights',
                         help='load_weights type is boolean', default=False, type=bool)
     parser.add_argument('--rewrite_hdf5', dest='rewrite_hdf5',
-                        help='rewrite_hdf5 type is boolean', default=False, type=bool)
+                        help='rewrite_hdf5 type is boolean', default=True, type=bool)
     parser.add_argument('--data_augmentation', dest='data_augmentation',
                         help='data_augmentation type is boolean', default=False, type=bool)
     args = parser.parse_args()
@@ -43,9 +44,9 @@ def parseArgs():
 class seg_train:
     def __init__(self, load_weights=False, batch_size=8, epochs=0, load_data_mode='hdf5', mask_size=256,
                  load_file_mode='part', load_train_file_number=1000, load_val_file_number=200,
-                 rewrite_hdf5=False, data_augmentation=False):
+                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=1, erase_rate=0.1):
         self.load_weights = load_weights
-        # checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
+        # self.checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
         self.checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
         self.batch_size = batch_size
         self.epochs = epochs
@@ -56,14 +57,19 @@ class seg_train:
         self.data_augmentation = data_augmentation
         self.load_train_file_number = load_train_file_number
         self.load_val_file_number = load_val_file_number
+        self.erase_rate = erase_rate
+        self.augmentation_rate = augmentation_rate
 
         self.strategy = tf.distribute.MirroredStrategy()
         print('目前使用gpu数量为: {}'.format(self.strategy.num_replicas_in_sync))
+        if self.strategy.num_replicas_in_sync >= 8:
+            print('[INFO]----------卡数上八!!!---------')
 
         if self.load_data_mode == 'hdf5':
             #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all
             data_loader = Data_Loader_Hdf5(load_file_mode=self.load_file_mode, mask_size=self.mask_size,
-                                           rewrite_hdf5=self.rewrite_hdf5, data_augmentation=self.data_augmentation)
+                                           rewrite_hdf5=self.rewrite_hdf5, data_augmentation=self.data_augmentation,
+                                           augmentation_rate=self.augmentation_rate, erase_rate=self.erase_rate)
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
             self.train_img = self.train_img / np.float32(255)
@@ -77,16 +83,16 @@ class seg_train:
 
     def model_train(self):
         """
-        可进行分布式训练
+        可多卡训练
         :return:
         """
         with self.strategy.scope():
-            # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=13, num_con_unit=2)
+            # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
             model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3,
-                                    aspp_filters=512)
+                                    aspp_filters=512, final_activation=None)
             model.compile(
                 optimizer='adam',
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                 metrics=['accuracy']
             )
 

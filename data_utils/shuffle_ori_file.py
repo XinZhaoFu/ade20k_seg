@@ -14,8 +14,6 @@ ori_img_file_list = glob.glob(ori_img_file_path + '*.jpg')
 ori_label_file_list = glob.glob(ori_label_file_path + '*.png')
 assert len(ori_img_file_list) == len(ori_label_file_list)
 shuffle_img_file_list, shuffle_label_file_list = shuffle_file(ori_img_file_list, ori_label_file_list)
-# for ori_img_file, ori_label_file in zip(shuffle_img_file_list, shuffle_label_file_list):
-#     print(ori_img_file, ori_label_file)
 
 recreate_dir(dis_img_train_file_path)
 recreate_dir(dis_label_train_file_path)

@@ -1,8 +1,10 @@
 import numpy as np
+import glob
 import cv2
 import tensorflow as tf
 from data_utils.data_loader_file import Data_Loader_File
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
+from data_utils.data_augmentation import augmentation
 
 np.set_printoptions(threshold=np.inf)
 
@@ -75,25 +77,27 @@ part_test_label_file_path = './data/part_data/test/label/'
 # predict_temp = onehot_to_class(onehot_temp, mask_size=4)
 # print(predict_temp)
 # onehot_to_class(onehot_temp, mask_size=1)
-data_loader = Data_Loader_Hdf5(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
-train_img_list, train_label_list = data_loader.load_train_data()
-print(len(train_img_list))
+
+
+# data_loader = Data_Loader_Hdf5(load_file_mode='part', mask_size=256, rewrite_hdf5=False)
+# train_img_list, train_label_list = data_loader.load_train_data()
+# print(len(train_img_list))
 
 # print(train_img_list[0, 100, 100:120, :])
-img_demo = np.empty(shape=(256, 256, 3))
-img_demo[:, :, :] = train_img_list[3, :, :, :]
-
-label_demo = np.empty(shape=(256, 256, 1))
-label_demo[:, :, 0] = train_label_list[3, :, :, 0]
-
-img_resize_demo = cv2.imread('data/ori-img/ADE_train_00000001.jpg')
-img_resize_demo = cv2.resize(img_resize_demo, (256, 256))
-img_resize_demo_np = np.empty(shape=(256, 256, 3), dtype=np.uint8)
-img_resize_demo_np[:, :, :] = img_resize_demo[:, :, :]
-
-cv2.imwrite('data/img_demo.jpg', img_demo)
-cv2.imwrite('data/label_demo.png', label_demo)
-cv2.imwrite('data/resize_demo.jpg', img_resize_demo_np)
+# img_demo = np.empty(shape=(256, 256, 3))
+# img_demo[:, :, :] = train_img_list[3, :, :, :]
+#
+# label_demo = np.empty(shape=(256, 256, 1))
+# label_demo[:, :, 0] = train_label_list[3, :, :, 0]
+#
+# img_resize_demo = cv2.imread('data/ori-img/ADE_train_00000001.jpg')
+# img_resize_demo = cv2.resize(img_resize_demo, (256, 256))
+# img_resize_demo_np = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# img_resize_demo_np[:, :, :] = img_resize_demo[:, :, :]
+#
+# cv2.imwrite('data/img_demo.jpg', img_demo)
+# cv2.imwrite('data/label_demo.png', label_demo)
+# cv2.imwrite('data/resize_demo.jpg', img_resize_demo_np)
 # train_img_list = train_img_list / 255.
 #
 # print(train_img_list[0, 100, 100, :])

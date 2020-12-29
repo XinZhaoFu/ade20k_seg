@@ -4,7 +4,8 @@ from model.network_utils import Con_Bn_Act, Sep_Con_Bn_Act
 
 
 class Deeplab_v3_plus(Model):
-    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3, aspp_filters=256):
+    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3, aspp_filters=256,
+                 final_activation=None):
         super(Deeplab_v3_plus, self).__init__()
         self.final_filters = final_filters
         self.num_middle = num_middle
@@ -12,6 +13,7 @@ class Deeplab_v3_plus(Model):
         self.input_channel = input_channel
         self.aspp_filters = aspp_filters
         self.backbone_low2_filters = 256
+        self.final_activation = final_activation
 
         self.backbone = Xception_BackBone(num_middle=self.num_middle, img_size=self.img_size,
                                           input_channel=self.input_channel)
@@ -23,8 +25,8 @@ class Deeplab_v3_plus(Model):
                                      input_channel=self.backbone_low2_filters+self.aspp_filters,
                                      kernel_size=(3, 3), name='con_concat')
         self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
-        self.out_con = Con_Bn_Act(filters=self.final_filters, img_size=self.img_size, input_channel=512,
-                                  kernel_size=(3, 3), activation='softmax', name='out')
+        self.out_con = Con_Bn_Act(filters=self.final_filters, img_size=self.img_size, input_channel=256,
+                                  kernel_size=(3, 3), activation=self.final_activation, name='out')
 
     def call(self, inputs):
         backbone_low2, backbone_out = self.backbone(inputs)
@@ -49,14 +51,14 @@ class Xception_BackBone(Model):
         self.input_channel = input_channel
 
         #   entry flow
-        self.entry_con1_1 = Con_Bn_Act(filters=32, img_size=self.img_size, input_channel=self.input_channel,
+        self.entry_con1_1 = Con_Bn_Act(filters=128, img_size=self.img_size, input_channel=self.input_channel,
                                        strides=2, name='entry_con1_1')
-        self.entry_con1_2 = Con_Bn_Act(filters=64, img_size=int(self.img_size / 2), input_channel=32,
+        self.entry_con1_2 = Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
                                        name='entry_con1_2')
 
-        self.entry_con_res_2 = Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=64,
+        self.entry_con_res_2 = Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
                                           kernel_size=(1, 1), strides=2, name='entry_con_res_2')
-        self.entry_sep_con2_1 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=64,
+        self.entry_sep_con2_1 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
                                                name='entry_sep_con2_1')
         self.entry_sep_con2_2 = Sep_Con_Bn_Act(filters=128, img_size=int(self.img_size / 2), input_channel=128,
                                                name='entry_sep_con2_2')

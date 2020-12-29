@@ -3,11 +3,10 @@ import numpy as np
 import cv2
 
 
-def augmentation(img, label, mask_size=256, erase_rate=0.5):
+def augmentation(img, label, mask_size=256, erase_rate=0.5, augmentation_rate=1):
     """
-    数据量没有变化 只是对部分图片引入了翻转旋转裁剪遮盖
-    不是我不想扩增数据量 本来这个函数是有一个扩增几倍的参数的 后来发现两万张图片数据量太多了 就不想扩了
-    如果想扩增数量可以在除翻转以外的任意一步进行扩增
+    对图片随机引入了翻转旋转裁剪遮盖
+    :param augmentation_rate:
     :param erase_rate:
     :param img:
     :param label:
@@ -16,33 +15,35 @@ def augmentation(img, label, mask_size=256, erase_rate=0.5):
     """
     assert mask_size > 0
 
-    crop_choice = choice([0, 1])
-    if crop_choice:
-        img, label = img_crop(img, label, mask_size)
+    for _ in range(augmentation_rate):
 
-    width, length, channel = img.shape
-    if width != mask_size or length != mask_size or img.shape != label.shape:
-        img = cv2.resize(img, dsize=(mask_size, mask_size))
-        label = cv2.resize(label, dsize=(mask_size, mask_size))
+        crop_choice = choice([0, 1])
+        if crop_choice:
+            img, label = img_crop(img, label, mask_size)
 
-    flip_choice = choice([0, 1])
-    if flip_choice:
-        img = cv2.flip(img, 1)
-        label = cv2.flip(label, 1)
+        width, length, channel = img.shape
+        if width != mask_size or length != mask_size or img.shape != label.shape:
+            img = cv2.resize(img, dsize=(mask_size, mask_size))
+            label = cv2.resize(label, dsize=(mask_size, mask_size))
 
-    rotate_choice = choice([0, 1])
-    if rotate_choice:
-        img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
+        flip_choice = choice([0, 1])
+        if flip_choice:
+            img = cv2.flip(img, 1)
+            label = cv2.flip(label, 1)
 
-    erase_choice = choice([0, 1])
-    if erase_choice:
-        cutout_gridmask_choice = choice([0, 1])
-        if cutout_gridmask_choice:
-            img = gridMask(img, rate=erase_rate, img_size=mask_size)
-        else:
-            img = cutout(img, rate=erase_rate, img_size=mask_size)
+        rotate_choice = choice([0, 1])
+        if rotate_choice:
+            img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
 
-    return img, label
+        erase_choice = choice([0, 1])
+        if erase_choice:
+            cutout_gridmask_choice = choice([0, 1])
+            if cutout_gridmask_choice:
+                img = gridMask(img, rate=erase_rate, img_size=mask_size)
+            else:
+                img = cutout(img, rate=erase_rate, img_size=mask_size)
+
+        yield img, label
 
 
 def img_crop(ori_img, ori_label, crop_size):
@@ -96,14 +97,15 @@ def img_rotate(ori_img, ori_label, rot_num=4, img_size=256):
 
         rot_img_temp = cv2.warpAffine(ori_img, rotated_matrix, (img_size, img_size))
         rot_img_temp = np.reshape(rot_img_temp, ori_img.shape)
-        rot_img_list.append(rot_img_temp)
 
         rot_label_temp = cv2.warpAffine(ori_label, rotated_matrix, (img_size, img_size))
         rot_label_temp = np.reshape(rot_label_temp, ori_label.shape)
-        rot_label_list.append(rot_label_temp)
 
         if rot_num == 1:
             return rot_img_temp, rot_label_temp
+
+        rot_img_list.append(rot_img_temp)
+        rot_label_list.append(rot_label_temp)
 
     return rot_img_list, rot_label_list
 
@@ -112,8 +114,8 @@ def cutout(ori_img, rate=0.5, img_size=256):
     """
     对正方形图片进行cutout 遮盖位置随机
         长方形需要改一下
-    遮盖长度为空时用默认值图像尺寸的一半
-        依据论文作者，过拟合增大，欠拟合缩小，自行调节
+    遮盖比例为空时用默认值图像尺寸的一半作为遮盖的边长 即默认遮盖四分之一区域
+        使用经验，过拟合遮盖率增大，欠拟合去掉遮盖，具体数值自行调节
     添加遮盖前 对图像一圈进行0填充
     :param img_size:
     :param ori_img: 输入应为正方形图像
@@ -135,8 +137,7 @@ def gridMask(ori_img, rate=0.5, img_size=256):
     """
     对图片进行gridmask 每行每列各十个 以边均匀十等分 每一长度中包含mask长度、offset偏差和留白
         长方形需要改一下
-    遮盖长度为空时用默认值图像尺寸的一半
-        盲猜，过拟合增大，欠拟合缩小，自行调节
+    其余可参考cutout的注释
     :param img_size:
     :param ori_img: 输入应为正方形图像
     :param rate: mask长度与十分之一边长的比值
@@ -161,6 +162,13 @@ def gridMask(ori_img, rate=0.5, img_size=256):
 
 
 def resize_img_label_list(img_list, label_list, mask_size):
+    """
+    对传入的img列表和label列表统一尺寸
+    :param img_list:
+    :param label_list:
+    :param mask_size:
+    :return:
+    """
     resize_img_list, resize_label_list = [], []
     for img, label in zip(img_list, label_list):
         img = cv2.resize(img, dsize=(mask_size, mask_size))
