@@ -132,7 +132,7 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
             file_index += 1
 
         if file_index % 1000 == 0:
-            print('已加载数目：\t' + str(file_index+1))
+            print('已加载数目：\t' + str(file_index))
 
     write_hdf5(img_array_hdf5, file_path + 'img.hdf5')
     write_hdf5(mask_array_hdf5, file_path + 'mask.hdf5')

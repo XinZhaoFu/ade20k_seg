@@ -21,6 +21,7 @@ def parseArgs():
     """
     parser = argparse.ArgumentParser(description='ade20k segmentation demo')
     parser.add_argument('--mask_size', dest='mask_size', help='mask_size', default=256, type=int)
+    parser.add_argument('--learning_rate', dest='learning_rate', help='learning_rate', default=0, type=float)
     parser.add_argument('--epochs', dest='epochs', help='epochs', default=0, type=int)
     parser.add_argument('--batch_size', dest='batch_size', help='batch_size', default=1, type=int)
     parser.add_argument('--load_train_file_number', dest='load_train_file_number', help='load_train_file_number',
@@ -34,7 +35,7 @@ def parseArgs():
     parser.add_argument('--load_weights', dest='load_weights',
                         help='load_weights type is boolean', default=False, type=bool)
     parser.add_argument('--rewrite_hdf5', dest='rewrite_hdf5',
-                        help='rewrite_hdf5 type is boolean', default=True, type=bool)
+                        help='rewrite_hdf5 type is boolean', default=False, type=bool)
     parser.add_argument('--data_augmentation', dest='data_augmentation',
                         help='data_augmentation type is boolean', default=False, type=bool)
     args = parser.parse_args()
@@ -44,7 +45,8 @@ def parseArgs():
 class seg_train:
     def __init__(self, load_weights=False, batch_size=8, epochs=0, load_data_mode='hdf5', mask_size=256,
                  load_file_mode='part', load_train_file_number=1000, load_val_file_number=200,
-                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=1, erase_rate=0.1):
+                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=1, erase_rate=0.1,
+                 learning_rate=0):
         self.load_weights = load_weights
         # self.checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
         self.checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
@@ -59,6 +61,7 @@ class seg_train:
         self.load_val_file_number = load_val_file_number
         self.erase_rate = erase_rate
         self.augmentation_rate = augmentation_rate
+        self.learning_rate = learning_rate
 
         self.strategy = tf.distribute.MirroredStrategy()
         print('目前使用gpu数量为: {}'.format(self.strategy.num_replicas_in_sync))
@@ -90,14 +93,24 @@ class seg_train:
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
             model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3,
                                     aspp_filters=512, final_activation=None)
-            model.compile(
-                optimizer='adam',
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                metrics=['accuracy']
-            )
+
+            if self.learning_rate > 0:
+                model.compile(
+                    optimizer=tf.keras.optimizers.SGD(learning_rate=self.learning_rate),
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                    metrics=['accuracy']
+                )
+            else:
+                model.compile(
+                    optimizer=tf.keras.optimizers.Adadelta(learning_rate=0.1),
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                    metrics=['accuracy']
+                )
 
             if os.path.exists(self.checkpoint_save_path + '.index') and self.load_weights:
-                print("[INFO] loading weights")
+                print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
+                print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
+                print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 model.load_weights(self.checkpoint_save_path)
 
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
@@ -120,11 +133,10 @@ def main():
 
     args = parseArgs()
     seg = seg_train(load_weights=args.load_weights, batch_size=args.batch_size, epochs=args.epochs,
-                    load_data_mode=args.load_data_mode,
-                    mask_size=args.mask_size, load_file_mode=args.load_file_mode,
-                    load_train_file_number=args.load_train_file_number,
-                    load_val_file_number=args.load_val_file_number,
-                    rewrite_hdf5=args.rewrite_hdf5, data_augmentation=args.data_augmentation)
+                    load_data_mode=args.load_data_mode, mask_size=args.mask_size,
+                    load_file_mode=args.load_file_mode, load_train_file_number=args.load_train_file_number,
+                    load_val_file_number=args.load_val_file_number, rewrite_hdf5=args.rewrite_hdf5,
+                    data_augmentation=args.data_augmentation, learning_rate=args.learning_rate)
     seg.model_train()
 
     print_cost_time(start_time)

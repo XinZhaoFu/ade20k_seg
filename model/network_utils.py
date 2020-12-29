@@ -22,10 +22,11 @@ class Con_Bn_Act(Model):
         else:
             self.con_regularizer = None
 
+        # kernel_initializer_special_cases = ['he_normal', 'he_uniform', 'lecun_normal', 'lecun_uniform']
         self.con = Conv2D(filters=self.filters, kernel_size=self.kernel_size, padding=self.padding,
                           strides=self.strides, use_bias=False, dilation_rate=(self.dilation_rate, self.dilation_rate),
                           input_shape=(self.img_size, self.img_size, self.input_channel), name=self.block_name,
-                          kernel_regularizer=self.con_regularizer)
+                          kernel_regularizer=self.con_regularizer, kernel_initializer='he_normal')
         self.bn = BatchNormalization(input_shape=(self.img_size, self.img_size, self.filters))
         if self.activation is not None:
             self.act = Activation(self.activation)
@@ -55,7 +56,7 @@ class Sep_Con_Bn_Act(Model):
 
         self.con = SeparableConv2D(filters=self.filters, kernel_size=self.kernel_size, padding=self.padding,
                                strides=self.strides, use_bias=False, name=self.block_name,
-                                   input_shape=(self.img_size, self.img_size, self.input_channel))
+                                   input_shape=(self.img_size, self.img_size, self.input_channel),)
         self.bn = BatchNormalization(input_shape=(self.img_size, self.img_size, self.filters))
         self.act = Activation(self.activation)
 
