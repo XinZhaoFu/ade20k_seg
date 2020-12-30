@@ -75,8 +75,6 @@ class seg_train:
                                            augmentation_rate=self.augmentation_rate, erase_rate=self.erase_rate)
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
-            self.train_img = self.train_img / np.float32(255)
-            self.val_img = self.val_img / np.float32(255)
         else:
             data_loader = Data_Loader_File(mask_size=self.mask_size, data_augmentation=False)
             self.train_img, self.train_label = data_loader.load_train_data(
@@ -112,10 +110,10 @@ class seg_train:
                 print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 model.load_weights(self.checkpoint_save_path)
-
+#   -------------------------------val_loss改成loss了 记得后头改过来
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
                 filepath=self.checkpoint_save_path,
-                monitor='val_loss',
+                monitor='loss',
                 save_weights_only=True,
                 save_best_only=True,
                 mode='auto',

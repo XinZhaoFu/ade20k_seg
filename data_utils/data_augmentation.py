@@ -15,26 +15,30 @@ def augmentation(img, label, mask_size=256, erase_rate=0.5, augmentation_rate=1)
     """
     assert mask_size > 0
 
-    for _ in range(augmentation_rate):
+    for i in range(augmentation_rate):
 
-        crop_choice = choice([0, 1])
-        if crop_choice:
+        # 如果数据扩增数量大于1 则除第一张以外的图片均进行裁剪 以保证图片互异
+        if i:
             img, label = img_crop(img, label, mask_size)
 
+        # 引入resize 如果没有经裁剪 使得图片尺寸变为规定尺寸 则该步骤进行统一修改
         width, length, channel = img.shape
         if width != mask_size or length != mask_size or img.shape != label.shape:
             img = cv2.resize(img, dsize=(mask_size, mask_size))
             label = cv2.resize(label, dsize=(mask_size, mask_size))
 
+        # 水平方向的翻转
         flip_choice = choice([0, 1])
         if flip_choice:
             img = cv2.flip(img, 1)
             label = cv2.flip(label, 1)
 
+        # 在0 90 180 270 之间任选一值进行随机旋转
         rotate_choice = choice([0, 1])
         if rotate_choice:
             img, label = img_rotate(img, label, rot_num=1, img_size=mask_size)
 
+        # 在cutout或gridmask之间任选一种遮盖方法
         erase_choice = choice([0, 1])
         if erase_choice:
             cutout_gridmask_choice = choice([0, 1])
