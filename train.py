@@ -90,18 +90,18 @@ class seg_train:
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
             model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3,
-                                    aspp_filters=512, final_activation=None)
+                                    aspp_filters=256, final_activation='softmax')
 
             if self.learning_rate > 0:
                 model.compile(
                     optimizer=tf.keras.optimizers.SGD(learning_rate=self.learning_rate),
-                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                     metrics=['accuracy']
                 )
             else:
                 model.compile(
                     optimizer=tf.keras.optimizers.Adadelta(learning_rate=0.1),
-                    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                     metrics=['accuracy']
                 )
 
@@ -110,10 +110,10 @@ class seg_train:
                 print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 model.load_weights(self.checkpoint_save_path)
-#   -------------------------------val_loss改成loss了 记得后头改过来
+
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
                 filepath=self.checkpoint_save_path,
-                monitor='loss',
+                monitor='val_loss',
                 save_weights_only=True,
                 save_best_only=True,
                 mode='auto',
