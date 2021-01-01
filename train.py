@@ -45,7 +45,7 @@ def parseArgs():
 class seg_train:
     def __init__(self, load_weights=False, batch_size=8, epochs=0, load_data_mode='hdf5', mask_size=256,
                  load_file_mode='part', load_train_file_number=1000, load_val_file_number=200,
-                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=1, erase_rate=0.1,
+                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=4, erase_rate=0.1,
                  learning_rate=0):
         self.load_weights = load_weights
         # self.checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
@@ -89,7 +89,7 @@ class seg_train:
         """
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151, num_middle=16, img_size=self.mask_size, input_channel=3,
+            model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=self.mask_size, input_channel=3,
                                     aspp_filters=256, final_activation='softmax')
 
             if self.learning_rate > 0:

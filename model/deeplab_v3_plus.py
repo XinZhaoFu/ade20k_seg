@@ -58,23 +58,23 @@ class Xception_BackBone(Model):
         self.entry_sep_con3_2 = Sep_Con_Bn_Act(filters=256, name='entry_sep_con3_2')
         self.entry_sep_con3_3 = Sep_Con_Bn_Act(filters=256, strides=2, name='entry_sep_con3_3')
 
-        self.entry_con_res_4 = Con_Bn_Act(filters=512, kernel_size=(1, 1), strides=2, name='entry_con_res_4')
-        self.entry_sep_con4_1 = Sep_Con_Bn_Act(filters=512, name='entry_sep_con4_1')
-        self.entry_sep_con4_2 = Sep_Con_Bn_Act(filters=512, name='entry_sep_con4_2')
-        self.entry_sep_con4_3 = Sep_Con_Bn_Act(filters=512, kernel_size=(3, 3), strides=2, name='entry_sep_con4_3')
+        self.entry_con_res_4 = Con_Bn_Act(filters=256, kernel_size=(1, 1), strides=2, name='entry_con_res_4')
+        self.entry_sep_con4_1 = Sep_Con_Bn_Act(filters=256, name='entry_sep_con4_1')
+        self.entry_sep_con4_2 = Sep_Con_Bn_Act(filters=256, name='entry_sep_con4_2')
+        self.entry_sep_con4_3 = Sep_Con_Bn_Act(filters=256, kernel_size=(3, 3), strides=2, name='entry_sep_con4_3')
 
         # middle flow
-        self.middle_con_res_middle = Con_Bn_Act(filters=512, kernel_size=(1, 1), name='middle_con_res_middle')
-        self.middle_sep_con_middle_x3 = Sep_Con_Bn_Act(filters=512, name='middle_sep_con_middle_x3')
+        self.middle_con_res_middle = Con_Bn_Act(filters=256, kernel_size=(1, 1), name='middle_con_res_middle')
+        self.middle_sep_con_middle_x3 = Sep_Con_Bn_Act(filters=256, name='middle_sep_con_middle_x3')
 
         # exit flow
-        self.exit_con_res_1 = Con_Bn_Act(filters=512, kernel_size=(1, 1), name='exit_con_res_1')
-        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=512, name='exit_sep_con1_1')
-        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=512, name='exit_sep_con1_x2')
+        self.exit_con_res_1 = Con_Bn_Act(filters=256, kernel_size=(1, 1), name='exit_con_res_1')
+        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_1')
+        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_x2')
 
-        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=512, name='exit_sep_con2_1')
-        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=512, name='exit_sep_con2_2')
-        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=512, name='exit_sep_con2_3')
+        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_1')
+        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_2')
+        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_3')
 
     def call(self, inputs):
         #   entry flow
@@ -123,11 +123,9 @@ class Xception_BackBone(Model):
 
 
 class Aspp(Model):
-    def __init__(self, img_size, input_channel=512, filters=256):
+    def __init__(self, filters=256):
         super(Aspp, self).__init__()
         self.filters = filters
-        self.img_size = img_size
-        self.input_channel = input_channel
 
         self.con1x1 = Conv2D(filters=self.filters, kernel_size=(1, 1), padding='same', name='aspp_con1x1')
 
