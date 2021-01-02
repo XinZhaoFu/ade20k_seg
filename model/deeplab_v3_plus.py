@@ -16,7 +16,7 @@ class Deeplab_v3_plus(Model):
         self.final_activation = final_activation
 
         self.backbone = Xception_BackBone(num_middle=self.num_middle)
-        self.aspp = Aspp(img_size=int(self.img_size / 16), input_channel=512, filters=self.aspp_filters)
+        self.aspp = Aspp(filters=self.aspp_filters)
         self.aspp_up = UpSampling2D(size=(4, 4), name='aspp_up')
         self.con_low = Con_Bn_Act(filters=self.backbone_low2_filters, kernel_size=(1, 1), name='con_low')
         self.con_concat = Con_Bn_Act(filters=256, kernel_size=(3, 3), name='con_concat')

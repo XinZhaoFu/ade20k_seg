@@ -8,6 +8,26 @@ from data_utils.data_augmentation import augmentation
 
 np.set_printoptions(threshold=np.inf)
 
+data_loader = Data_Loader_Hdf5(load_file_mode='all', mask_size=256)
+train_img, train_label = data_loader.load_train_data()
+val_img, val_label = data_loader.load_val_data()
+
+train_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+train_img0[:, :, :] = train_img[10, :, :, :] * 255.
+cv2.imwrite('data/train_img0.jpg', train_img0)
+
+train_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+train_label0[:, :, :] = train_label[10, :, :, :]
+cv2.imwrite('data/train_label0.jpg', train_label0)
+
+val_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+val_img0[:, :, :] = val_img[10, :, :, :] * 255.
+cv2.imwrite('data/val_img0.jpg', val_img0)
+
+val_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+val_label0[:, :, :] = val_label[10, :, :, :]
+cv2.imwrite('data/val_label0.jpg', val_label0)
+
 # for _ in range(20):
 #     crop_choice = choice([0, 1])
 #     print(crop_choice)

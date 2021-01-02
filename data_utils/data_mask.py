@@ -113,8 +113,14 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
 
     file_index = 0
     for img_file, label_file in zip(img_file_list, label_file_list):
+        # print(file_index, img_file, label_file)
         img = cv2.imread(img_file)
         label = cv2.imread(label_file)
+
+        img_name = (img_file.split('\\')[-1]).split('.')[0]
+        label_name = (label_file.split('\\')[-1]).split('.')[0]
+        assert img_name == label_name
+
         if augmentation_mode is True:
             print('进行数据扩增 扩增倍数为：\t' + str(augmentation_rate) + '遮盖比例为：\t' + str(erase_rate))
             for img, label in augmentation(img, label, mask_size=mask_size, erase_rate=erase_rate,

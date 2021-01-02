@@ -48,7 +48,7 @@ def write_hdf5(data, out_file_path):
 
 def shuffle_file(img_file_list, label_file_list):
     """
-    打乱img和label的文件列表顺序 并返回两列表
+    打乱img和label的文件列表顺序 并返回两列表 seed已固定
     :param img_file_list:
     :param label_file_list:
     :return:
