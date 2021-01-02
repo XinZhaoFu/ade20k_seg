@@ -102,25 +102,29 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
 
     img_file_list, label_file_list = shuffle_file(img_file_list, label_file_list)
 
-    img_array_hdf5 = np.empty(shape=(augmentation_rate*len(img_file_list), mask_size, mask_size, 3),
-                              dtype=np.float16)
-    mask_array_hdf5 = np.empty(shape=(augmentation_rate*len(label_file_list), mask_size, mask_size, 1),
-                               dtype=np.uint8)
+    if augmentation_mode is True:
+        img_array_hdf5 = np.empty(shape=(augmentation_rate*len(img_file_list), mask_size, mask_size, 3),
+                                  dtype=np.float16)
+        mask_array_hdf5 = np.empty(shape=(augmentation_rate*len(label_file_list), mask_size, mask_size, 1),
+                                   dtype=np.uint8)
+    else:
+        img_array_hdf5 = np.empty(shape=(len(img_file_list), mask_size, mask_size, 3), dtype=np.float16)
+        mask_array_hdf5 = np.empty(shape=(len(label_file_list), mask_size, mask_size, 1), dtype=np.uint8)
 
     file_index = 0
     for img_file, label_file in zip(img_file_list, label_file_list):
         img = cv2.imread(img_file)
         label = cv2.imread(label_file)
-        if augmentation_mode:
+        if augmentation_mode is True:
+            print('进行数据扩增 扩增倍数为：\t' + str(augmentation_rate) + '遮盖比例为：\t' + str(erase_rate))
             for img, label in augmentation(img, label, mask_size=mask_size, erase_rate=erase_rate,
                                            augmentation_rate=augmentation_rate):
-                img_array_hdf5[file_index, :, :, :] = img[:, :, :]
+                img_array_hdf5[file_index, :, :, :] = img[:, :, :] / np.float16(255.)
                 mask_array_hdf5[file_index, :, :, 0] = label[:, :, 0]
                 file_index += 1
         else:
             img = cv2.resize(img, (mask_size, mask_size))
             label = cv2.resize(label, (mask_size, mask_size))
-
             img_array_hdf5[file_index, :, :, :] = img[:, :, :] / np.float16(255.)
             mask_array_hdf5[file_index, :, :, 0] = label[:, :, 0]
             file_index += 1

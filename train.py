@@ -100,7 +100,7 @@ class seg_train:
                 )
             else:
                 model.compile(
-                    optimizer=tf.keras.optimizers.Adadelta(learning_rate=0.1),
+                    optimizer='Adam',
                     loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                     metrics=['accuracy']
                 )

@@ -23,7 +23,8 @@ class Con_Bn_Act(Model):
         # kernel_initializer_special_cases = ['he_normal', 'he_uniform', 'lecun_normal', 'lecun_uniform']
         self.con = Conv2D(filters=self.filters, kernel_size=self.kernel_size, padding=self.padding,
                           strides=self.strides, use_bias=False, dilation_rate=(self.dilation_rate, self.dilation_rate),
-                        name=self.block_name, kernel_regularizer=self.con_regularizer, kernel_initializer='he_normal')
+                        name=self.block_name, kernel_regularizer=self.con_regularizer,
+                          kernel_initializer='glorot_uniform')
         self.bn = BatchNormalization()
         if self.activation is not None:
             self.act = Activation(self.activation)
@@ -39,8 +40,7 @@ class Con_Bn_Act(Model):
 
 
 class Sep_Con_Bn_Act(Model):
-    def __init__(self, filters, kernel_size=(3, 3), padding='same', strides=1,
-                 activation='relu', name=None):
+    def __init__(self, filters, kernel_size=(3, 3), padding='same', strides=1, activation='relu', name=None):
         super(Sep_Con_Bn_Act, self).__init__()
         self.filters = filters
         self.kernel_size = kernel_size
