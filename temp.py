@@ -11,17 +11,17 @@ from utils import get_color
 
 np.set_printoptions(threshold=np.inf)
 
+# predict_demo
 color_list = get_color()
-
 checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
 model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3,
                         aspp_filters=128, final_activation='softmax')
 model.compile(optimizer='adam', loss=tf.keras.losses.BinaryCrossentropy(), metrics=['accuracy'])
-
 model.load_weights(checkpoint_save_path)
 
-test_img = cv2.imread('data/train/img/ADE_train_00000005.jpg')
-test_img = cv2.resize(test_img, dsize=(256, 256))
+ori_test_img = cv2.imread('data/train/img/ADE_train_00000005.jpg')
+ori_row, ori_col, _ = ori_test_img.shape
+test_img = cv2.resize(ori_test_img, dsize=(256, 256))
 test_label = cv2.imread('data/train/label/ADE_train_00000005.png')
 test_label = cv2.resize(test_label, dsize=(256, 256))
 
@@ -34,9 +34,9 @@ predict = predict[..., tf.newaxis]
 
 pred_mask = np.empty(shape=(256, 256, 3))
 pred_mask[:, :, :] = color_list[predict[:, :, 0], :]
-
 label_mask = np.empty(shape=(256, 256, 3))
 label_mask[:, :, :] = color_list[test_label[:, :, 0], :]
+label_mask = cv2.resize(label_mask, dsize=(ori_row, ori_col))
 
 cv2.imwrite('data/demo_mask.png', pred_mask)
 cv2.imwrite('data/demo_label.png', label_mask)
