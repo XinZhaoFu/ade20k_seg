@@ -3,6 +3,7 @@ import cv2
 from utils import onehot_to_class
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from model.unet import UNet_seg
+from model.deeplab_v3_plus import Deeplab_v3_plus
 import tensorflow as tf
 import numpy as np
 
@@ -14,7 +15,8 @@ data_loader = Data_Loader_Hdf5(load_file_mode='part', mask_size=256)
 test_img_list, _ = data_loader.load_test_data()
 
 # 加载模型
-model = UNet_seg(filters=64, img_width=256, input_channel=3, num_class=13, num_con_unit=3)
+model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3,
+                        aspp_filters=128, final_activation='softmax')
 model.compile(
     optimizer='adam',
     loss=tf.keras.losses.BinaryCrossentropy(),

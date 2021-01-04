@@ -1,32 +1,70 @@
 import numpy as np
 import glob
 import cv2
+import csv
 import tensorflow as tf
+from model.deeplab_v3_plus import Deeplab_v3_plus
 from data_utils.data_loader_file import Data_Loader_File
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from data_utils.data_augmentation import augmentation
+from utils import get_color
 
 np.set_printoptions(threshold=np.inf)
 
-data_loader = Data_Loader_Hdf5(load_file_mode='all', mask_size=256)
-train_img, train_label = data_loader.load_train_data()
-val_img, val_label = data_loader.load_val_data()
+color_list = get_color()
 
-train_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
-train_img0[:, :, :] = train_img[10, :, :, :] * 255.
-cv2.imwrite('data/train_img0.jpg', train_img0)
+checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
+model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3,
+                        aspp_filters=128, final_activation='softmax')
+model.compile(optimizer='adam', loss=tf.keras.losses.BinaryCrossentropy(), metrics=['accuracy'])
 
-train_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
-train_label0[:, :, :] = train_label[10, :, :, :]
-cv2.imwrite('data/train_label0.jpg', train_label0)
+model.load_weights(checkpoint_save_path)
 
-val_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
-val_img0[:, :, :] = val_img[10, :, :, :] * 255.
-cv2.imwrite('data/val_img0.jpg', val_img0)
+test_img = cv2.imread('data/train/img/ADE_train_00000005.jpg')
+test_img = cv2.resize(test_img, dsize=(256, 256))
+test_label = cv2.imread('data/train/label/ADE_train_00000005.png')
+test_label = cv2.resize(test_label, dsize=(256, 256))
 
-val_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
-val_label0[:, :, :] = val_label[10, :, :, :]
-cv2.imwrite('data/val_label0.jpg', val_label0)
+test_img_np = np.empty(shape=(1, 256, 256, 3), dtype=np.float)
+test_img_np[0, :, :, :] = test_img / np.float(255.)
+predict = model.predict(test_img_np)
+predict = predict[0]
+predict = tf.argmax(predict, axis=-1)
+predict = predict[..., tf.newaxis]
+
+pred_mask = np.empty(shape=(256, 256, 3))
+pred_mask[:, :, :] = color_list[predict[:, :, 0], :]
+
+label_mask = np.empty(shape=(256, 256, 3))
+label_mask[:, :, :] = color_list[test_label[:, :, 0], :]
+
+cv2.imwrite('data/demo_mask.png', pred_mask)
+cv2.imwrite('data/demo_label.png', label_mask)
+cv2.imwrite('data/demo_merge.jpg', 0.5 * test_img + 0.5 * pred_mask)
+cv2.imwrite('data/demo_ori.jpg', 0.5 * test_img + 0.5 * label_mask)
+
+
+
+#
+# data_loader = Data_Loader_Hdf5(load_file_mode='all', mask_size=256)
+# train_img, train_label = data_loader.load_train_data()
+# val_img, val_label = data_loader.load_val_data()
+#
+# train_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# train_img0[:, :, :] = train_img[10, :, :, :] * 255.
+# cv2.imwrite('data/train_img0.jpg', train_img0)
+#
+# train_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# train_label0[:, :, :] = train_label[10, :, :, :]
+# cv2.imwrite('data/train_label0.jpg', train_label0)
+#
+# val_img0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# val_img0[:, :, :] = val_img[10, :, :, :] * 255.
+# cv2.imwrite('data/val_img0.jpg', val_img0)
+#
+# val_label0 = np.empty(shape=(256, 256, 3), dtype=np.uint8)
+# val_label0[:, :, :] = val_label[10, :, :, :]
+# cv2.imwrite('data/val_label0.jpg', val_label0)
 
 # for _ in range(20):
 #     crop_choice = choice([0, 1])

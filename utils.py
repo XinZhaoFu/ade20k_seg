@@ -1,3 +1,4 @@
+import csv
 import datetime
 import os
 import shutil
@@ -112,13 +113,31 @@ def onehot_to_class(onehot_predict_list, mask_size=256):
     return predict_list
 
 
-def onehot(self, label, num_classes):
+def onehot(label, num_classes):
     """
     生成该标签的独热码数组
-    :param self:
     :param label:
     :param num_classes:
     :return:
     """
     onehot_label = np.eye(num_classes)[label]
     return onehot_label
+
+
+def get_color():
+    """
+    返回各值对应颜色
+    :return:
+    """
+    file = csv.reader(open('data/color150.csv', 'r'))
+    color_list = np.empty(shape=(151, 3), dtype=np.uint8)
+    color_list[0, :] = 0
+    index = 1
+    for row in file:
+        color_list[index, 0] = row[0]
+        color_list[index, 1] = row[1]
+        color_list[index, 2] = row[2]
+        index += 1
+
+    return color_list
+

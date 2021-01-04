@@ -75,8 +75,8 @@ def get_img_mask_list(file_number, file_path, mask_size=256, augmentation_mode=F
 def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augmentation_rate=1, erase_rate=0.1):
     """
     将图像和标签存为hdf5文件
-    推荐真正的猛男在服务器上使用这种方式一次性把所有文件都读取到内存里
-    节省io时间
+    真正的猛男敢于在服务器上使用这种方式一次性把所有文件都读取到内存里
+    节省io时间 同时锻炼抗击打能力
     图像格式为(size, size, 3)
     标签格式为(size, size, 1)
     标签总计151类(含背景)
@@ -113,7 +113,6 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
 
     file_index = 0
     for img_file, label_file in zip(img_file_list, label_file_list):
-        # print(file_index, img_file, label_file)
         img = cv2.imread(img_file)
         label = cv2.imread(label_file)
 
@@ -122,7 +121,6 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
         assert img_name == label_name
 
         if augmentation_mode is True:
-            print('进行数据扩增 扩增倍数为：\t' + str(augmentation_rate) + '遮盖比例为：\t' + str(erase_rate))
             for img, label in augmentation(img, label, mask_size=mask_size, erase_rate=erase_rate,
                                            augmentation_rate=augmentation_rate):
                 img_array_hdf5[file_index, :, :, :] = img[:, :, :] / np.float16(255.)
