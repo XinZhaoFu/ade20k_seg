@@ -16,7 +16,7 @@ tf_uint8 = tf.uint8
 cv2_resize = cv2.resize
 
 
-def get_img_mask_list(file_number, file_path, mask_size=256, batch_size=16):
+def get_img_mask_list(file_number, file_path, mask_size=512, batch_size=16):
     """
     将图像和标签数据队列处理后以tensor返回
     图像格式为(size, size, 3)
@@ -138,7 +138,7 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
 def load_and_preprocess_image(path):
     image = tf_read_file(path)
     image = tf_decode_jpeg(image, channels=3)
-    image = tf_resize(image, [256, 256])
+    image = tf_resize(image, [512, 512])
     image /= 255.0
     return image
 
@@ -146,7 +146,7 @@ def load_and_preprocess_image(path):
 def load_and_preprocess_label(path):
     image = tf_read_file(path)
     image = tf_decode_png(image)
-    image = tf_resize(image, [256, 256])
+    image = tf_resize(image, [512, 512])
     image = tf_cast(image, dtype=tf_uint8)
 
     return image

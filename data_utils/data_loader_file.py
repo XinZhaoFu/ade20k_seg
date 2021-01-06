@@ -2,7 +2,7 @@ from data_utils.data_utils import get_img_mask_list
 
 
 class Data_Loader_File:
-    def __init__(self, mask_size, data_augmentation=False, batch_size=16):
+    def __init__(self, mask_size=512, data_augmentation=False, batch_size=16):
         self.batch_size = batch_size
         self.mask_size = mask_size
         self.data_augmentation = data_augmentation
@@ -16,7 +16,6 @@ class Data_Loader_File:
         train_dataset = get_img_mask_list(file_number=load_file_number,
                                           file_path=self.train_file_path,
                                           mask_size=self.mask_size,
-                                          augmentation_mode=self.data_augmentation,
                                           batch_size=self.batch_size)
         return train_dataset
 

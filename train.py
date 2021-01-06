@@ -43,9 +43,19 @@ def parseArgs():
 
 
 class seg_train:
-    def __init__(self, load_weights=False, batch_size=8, epochs=0, load_data_mode='hdf5', mask_size=256,
-                 load_file_mode='part', load_train_file_number=1000, load_val_file_number=200,
-                 rewrite_hdf5=False, data_augmentation=False, augmentation_rate=4, erase_rate=0.1,
+    def __init__(self,
+                 load_weights=False,
+                 batch_size=8,
+                 epochs=0,
+                 load_data_mode='hdf5',
+                 mask_size=256,
+                 load_file_mode='part',
+                 load_train_file_number=1000,
+                 load_val_file_number=200,
+                 rewrite_hdf5=False,
+                 data_augmentation=False,
+                 augmentation_rate=4,
+                 erase_rate=0.1,
                  learning_rate=0):
         self.load_weights = load_weights
         # self.checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
@@ -70,13 +80,17 @@ class seg_train:
 
         if self.load_data_mode == 'hdf5':
             #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all
-            data_loader = Data_Loader_Hdf5(load_file_mode=self.load_file_mode, mask_size=self.mask_size,
-                                           rewrite_hdf5=self.rewrite_hdf5, data_augmentation=self.data_augmentation,
-                                           augmentation_rate=self.augmentation_rate, erase_rate=self.erase_rate)
+            data_loader = Data_Loader_Hdf5(load_file_mode=self.load_file_mode,
+                                           mask_size=self.mask_size,
+                                           rewrite_hdf5=self.rewrite_hdf5,
+                                           data_augmentation=self.data_augmentation,
+                                           augmentation_rate=self.augmentation_rate,
+                                           erase_rate=self.erase_rate)
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
         else:
-            data_loader = Data_Loader_File(mask_size=self.mask_size, data_augmentation=False,
+            data_loader = Data_Loader_File(mask_size=self.mask_size,
+                                           data_augmentation=False,
                                            batch_size=self.batch_size)
             self.train_datasets = data_loader.load_train_data(load_file_number=self.load_train_file_number)
             self.val_datasets = data_loader.load_val_data(load_file_number=self.load_val_file_number)
@@ -88,8 +102,11 @@ class seg_train:
         """
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151, num_middle=4, img_size=self.mask_size, input_channel=3,
-                                    aspp_filters=128, final_activation='softmax')
+            model = Deeplab_v3_plus(final_filters=151,
+                                    num_middle=8,
+                                    input_channel=3,
+                                    aspp_filters=256,
+                                    final_activation='softmax')
 
             if self.learning_rate > 0:
                 print('使用sgd,其值为：\t'.join(str(self.learning_rate)))
@@ -121,12 +138,21 @@ class seg_train:
                 save_freq='epoch')
         if self.load_data_mode == 'hdf5':
             history = model.fit(
-                self.train_img, self.train_label, epochs=self.epochs, verbose=1, batch_size=self.batch_size,
-                validation_data=(self.val_img, self.val_label), validation_freq=1, callbacks=[checkpoint_callback])
+                self.train_img, self.train_label,
+                epochs=self.epochs,
+                verbose=1,
+                batch_size=self.batch_size,
+                validation_data=(self.val_img, self.val_label),
+                validation_freq=1,
+                callbacks=[checkpoint_callback])
         else:
             history = model.fit(
-                self.train_datasets, epochs=self.epochs, verbose=1, validation_data=self.val_datasets,
-                validation_freq=1, callbacks=[checkpoint_callback])
+                self.train_datasets,
+                epochs=self.epochs,
+                verbose=1,
+                validation_data=self.val_datasets,
+                validation_freq=1,
+                callbacks=[checkpoint_callback])
 
         model.summary()
 
@@ -135,11 +161,17 @@ def main():
     start_time = datetime.datetime.now()
 
     args = parseArgs()
-    seg = seg_train(load_weights=args.load_weights, batch_size=args.batch_size, epochs=args.epochs,
-                    load_data_mode=args.load_data_mode, mask_size=args.mask_size,
-                    load_file_mode=args.load_file_mode, load_train_file_number=args.load_train_file_number,
-                    load_val_file_number=args.load_val_file_number, rewrite_hdf5=args.rewrite_hdf5,
-                    data_augmentation=args.data_augmentation, learning_rate=args.learning_rate)
+    seg = seg_train(load_weights=args.load_weights,
+                    batch_size=args.batch_size,
+                    epochs=args.epochs,
+                    load_data_mode=args.load_data_mode,
+                    mask_size=args.mask_size,
+                    load_file_mode=args.load_file_mode,
+                    load_train_file_number=args.load_train_file_number,
+                    load_val_file_number=args.load_val_file_number,
+                    rewrite_hdf5=args.rewrite_hdf5,
+                    data_augmentation=args.data_augmentation,
+                    learning_rate=args.learning_rate)
     seg.model_train()
 
     print_cost_time(start_time)

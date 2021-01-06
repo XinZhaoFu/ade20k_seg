@@ -4,12 +4,11 @@ from model.network_utils import Con_Bn_Act, Sep_Con_Bn_Act
 
 
 class Deeplab_v3_plus(Model):
-    def __init__(self, final_filters, num_middle, img_size=256, input_channel=3, aspp_filters=256,
+    def __init__(self, final_filters, num_middle, input_channel=3, aspp_filters=256,
                  final_activation=None):
         super(Deeplab_v3_plus, self).__init__()
         self.final_filters = final_filters
         self.num_middle = num_middle
-        self.img_size = img_size
         self.input_channel = input_channel
         self.aspp_filters = aspp_filters
         self.backbone_low2_filters = 256
@@ -53,10 +52,10 @@ class Xception_BackBone(Model):
         self.entry_sep_con2_2 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con2_2')
         self.entry_sep_con2_3 = Sep_Con_Bn_Act(filters=64, strides=2, name='entry_sep_con2_3')
 
-        self.entry_con_res_3 = Con_Bn_Act(filters=128, kernel_size=(1, 1), strides=2, name='entry_con_res_3')
-        self.entry_sep_con3_1 = Sep_Con_Bn_Act(filters=128, name='entry_sep_con3_1')
-        self.entry_sep_con3_2 = Sep_Con_Bn_Act(filters=128, name='entry_sep_con3_2')
-        self.entry_sep_con3_3 = Sep_Con_Bn_Act(filters=128, strides=2, name='entry_sep_con3_3')
+        self.entry_con_res_3 = Con_Bn_Act(filters=64, kernel_size=(1, 1), strides=2, name='entry_con_res_3')
+        self.entry_sep_con3_1 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con3_1')
+        self.entry_sep_con3_2 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con3_2')
+        self.entry_sep_con3_3 = Sep_Con_Bn_Act(filters=64, strides=2, name='entry_sep_con3_3')
 
         self.entry_con_res_4 = Con_Bn_Act(filters=128, kernel_size=(1, 1), strides=2, name='entry_con_res_4')
         self.entry_sep_con4_1 = Sep_Con_Bn_Act(filters=128, name='entry_sep_con4_1')
@@ -68,13 +67,13 @@ class Xception_BackBone(Model):
         self.middle_sep_con_middle_x3 = Sep_Con_Bn_Act(filters=128, name='middle_sep_con_middle_x3')
 
         # exit flow
-        self.exit_con_res_1 = Con_Bn_Act(filters=256, kernel_size=(1, 1), name='exit_con_res_1')
-        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_1')
-        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_x2')
+        self.exit_con_res_1 = Con_Bn_Act(filters=128, kernel_size=(1, 1), name='exit_con_res_1')
+        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con1_1')
+        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con1_x2')
 
-        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_1')
-        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_2')
-        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_3')
+        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_1')
+        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_2')
+        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_3')
 
     def call(self, inputs):
         #   entry flow
@@ -129,11 +128,11 @@ class Aspp(Model):
 
         self.con1x1 = Conv2D(filters=self.filters, kernel_size=(1, 1), padding='same', name='aspp_con1x1')
 
-        self.dila_con1 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=2, padding='same',
+        self.dila_con1 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=6, padding='same',
                                 name='aspp_dila_con1')
-        self.dila_con2 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=3, padding='same',
+        self.dila_con2 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=12, padding='same',
                                 name='aspp_dila_con2')
-        self.dila_con3 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=4, padding='same',
+        self.dila_con3 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=18, padding='same',
                                 name='aspp_dila_con3')
 
         self.pooling_1 = MaxPooling2D(name='aspp_pooling_pooling')
