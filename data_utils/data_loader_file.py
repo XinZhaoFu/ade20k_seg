@@ -1,4 +1,4 @@
-from data_utils.data_mask import get_img_mask_list
+from data_utils.data_utils import get_img_mask_list
 
 
 class Data_Loader_File:

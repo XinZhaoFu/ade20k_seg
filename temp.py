@@ -8,7 +8,7 @@ from data_utils.data_loader_file import Data_Loader_File
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from data_utils.data_augmentation import augmentation
 from utils import get_color
-from data_utils.data_mask import load_and_preprocess_image_label
+from data_utils.data_utils import load_and_preprocess_image_label
 
 np.set_printoptions(threshold=np.inf)
 

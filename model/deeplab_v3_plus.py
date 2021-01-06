@@ -20,7 +20,7 @@ class Deeplab_v3_plus(Model):
         self.aspp_up = UpSampling2D(size=(4, 4), name='aspp_up')
         self.con_low = Con_Bn_Act(filters=self.backbone_low2_filters, kernel_size=(1, 1), name='con_low')
         self.con_concat = Con_Bn_Act(filters=256, kernel_size=(3, 3), name='con_concat')
-        # self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
+        self.up_concat = UpSampling2D(size=(4, 4), name='up_concat')
         self.out_con = Con_Bn_Act(filters=self.final_filters, kernel_size=(3, 3),
                                   activation=self.final_activation, name='out')
 
@@ -33,8 +33,8 @@ class Deeplab_v3_plus(Model):
 
         concat = concatenate([aspp_up, con_low], axis=3)
         con_concat = self.con_concat(concat)
-        # up = self.up_concat(con_concat)
-        out = self.out_con(con_concat)
+        up = self.up_concat(con_concat)
+        out = self.out_con(up)
 
         return out
 
@@ -46,12 +46,12 @@ class Xception_BackBone(Model):
 
         #   entry flow
         self.entry_con1_1 = Con_Bn_Act(filters=32, name='entry_con1_1')
-        self.entry_con1_2 = Con_Bn_Act(filters=32, name='entry_con1_2')
+        self.entry_con1_2 = Con_Bn_Act(filters=32, strides=2, name='entry_con1_2')
 
-        self.entry_con_res_2 = Con_Bn_Act(filters=64, kernel_size=(1, 1), name='entry_con_res_2')
+        self.entry_con_res_2 = Con_Bn_Act(filters=64, kernel_size=(1, 1), strides=2, name='entry_con_res_2')
         self.entry_sep_con2_1 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con2_1')
         self.entry_sep_con2_2 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con2_2')
-        self.entry_sep_con2_3 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con2_3')
+        self.entry_sep_con2_3 = Sep_Con_Bn_Act(filters=64, strides=2, name='entry_sep_con2_3')
 
         self.entry_con_res_3 = Con_Bn_Act(filters=128, kernel_size=(1, 1), strides=2, name='entry_con_res_3')
         self.entry_sep_con3_1 = Sep_Con_Bn_Act(filters=128, name='entry_sep_con3_1')
@@ -68,13 +68,13 @@ class Xception_BackBone(Model):
         self.middle_sep_con_middle_x3 = Sep_Con_Bn_Act(filters=128, name='middle_sep_con_middle_x3')
 
         # exit flow
-        self.exit_con_res_1 = Con_Bn_Act(filters=128, kernel_size=(1, 1), name='exit_con_res_1')
-        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con1_1')
-        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con1_x2')
+        self.exit_con_res_1 = Con_Bn_Act(filters=256, kernel_size=(1, 1), name='exit_con_res_1')
+        self.exit_sep_con1_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_1')
+        self.exit_sep_con1_x2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con1_x2')
 
-        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_1')
-        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_2')
-        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=128, name='exit_sep_con2_3')
+        self.exit_sep_con2_1 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_1')
+        self.exit_sep_con2_2 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_2')
+        self.exit_sep_con2_3 = Sep_Con_Bn_Act(filters=256, name='exit_sep_con2_3')
 
     def call(self, inputs):
         #   entry flow
@@ -129,20 +129,20 @@ class Aspp(Model):
 
         self.con1x1 = Conv2D(filters=self.filters, kernel_size=(1, 1), padding='same', name='aspp_con1x1')
 
-        self.dila_con1 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=6, padding='same',
+        self.dila_con1 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=2, padding='same',
                                 name='aspp_dila_con1')
-        self.dila_con2 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=12, padding='same',
+        self.dila_con2 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=3, padding='same',
                                 name='aspp_dila_con2')
-        self.dila_con3 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=18, padding='same',
+        self.dila_con3 = Conv2D(filters=self.filters, kernel_size=(3, 3), dilation_rate=4, padding='same',
                                 name='aspp_dila_con3')
 
         self.pooling_1 = MaxPooling2D(name='aspp_pooling_pooling')
-        self.pooling_2 = Conv2D(filters=self.filters, kernel_size=(3, 3), padding='same',
-                                name='aspp_pooling_con3x3')
+        self.pooling_2 = Conv2D(filters=self.filters, kernel_size=(1, 1), padding='same',
+                                name='aspp_pooling_con1x1')
         self.pooling_3 = UpSampling2D(name='aspp_pooling_upsampling')
 
-        self.concat_2 = Con_Bn_Act(filters=self.filters, kernel_size=(3, 3), padding='same',
-                                   name='aspp_concate_con3x3')
+        self.concat_2 = Con_Bn_Act(filters=self.filters, kernel_size=(1, 1), padding='same',
+                                   name='aspp_concate_con1x1')
 
     def call(self, inputs):
         con1x1 = self.con1x1(inputs)

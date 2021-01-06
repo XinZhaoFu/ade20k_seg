@@ -88,7 +88,7 @@ class seg_train:
         """
         with self.strategy.scope():
             # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=self.mask_size, input_channel=3,
+            model = Deeplab_v3_plus(final_filters=151, num_middle=4, img_size=self.mask_size, input_channel=3,
                                     aspp_filters=128, final_activation='softmax')
 
             if self.learning_rate > 0:

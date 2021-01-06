@@ -1,5 +1,5 @@
 from utils import load_hdf5
-from data_utils.data_mask import get_img_mask_hdf5
+from data_utils.data_utils import get_img_mask_hdf5
 
 
 class Data_Loader_Hdf5:
