@@ -1,5 +1,5 @@
 import numpy as np
-import glob
+from glob import glob
 import cv2
 import csv
 import tensorflow as tf
@@ -8,41 +8,58 @@ from data_utils.data_loader_file import Data_Loader_File
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from data_utils.data_augmentation import augmentation
 from utils import get_color
+from data_utils.data_mask import load_and_preprocess_image_label
 
 np.set_printoptions(threshold=np.inf)
 
+img_path = 'data/val/' + 'img/'
+label_path = 'data/val/' + 'label/'
+img_file_path_list = glob(img_path + '*.jpg')
+label_file_path_list = glob(label_path + '*.png')
+image_label_path_ds = tf.data.Dataset.from_tensor_slices((img_file_path_list, label_file_path_list))
+# image_label_path_ds = tf.data.Dataset.from_tensor_slices(label_file_path_list)
+print(image_label_path_ds)
+(image_path, label_path) = image_label_path_ds
+print(image_path)
+# image_label_ds = image_label_path_ds.map(load_and_preprocess_image_label(size=256),
+#                                          num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+# image = load_and_preprocess_image(path='data/train/img/ADE_train_00000005.jpg', size=256, img=True)
+# print(image)
+# label = load_and_preprocess_image(path='data/train/label/ADE_train_00000005.png', size=256, img=False)
+# print(label)
+
 # predict_demo
-color_list = get_color()
-checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
-model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3,
-                        aspp_filters=128, final_activation='softmax')
-model.compile(optimizer='adam', loss=tf.keras.losses.BinaryCrossentropy(), metrics=['accuracy'])
-model.load_weights(checkpoint_save_path)
+# color_list = get_color()
+# checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
+# model = Deeplab_v3_plus(final_filters=151, num_middle=8, img_size=256, input_channel=3,
+#                         aspp_filters=128, final_activation='softmax')
+# model.compile(optimizer='adam', loss=tf.keras.losses.BinaryCrossentropy(), metrics=['accuracy'])
+# model.load_weights(checkpoint_save_path)
 
-ori_test_img = cv2.imread('data/train/img/ADE_train_00000005.jpg')
-ori_row, ori_col, _ = ori_test_img.shape
-test_img = cv2.resize(ori_test_img, dsize=(256, 256))
-test_label = cv2.imread('data/train/label/ADE_train_00000005.png')
-test_label = cv2.resize(test_label, dsize=(256, 256))
+# ori_test_img = cv2.imread('data/train/img/ADE_train_00000005.jpg')
+# ori_row, ori_col, _ = ori_test_img.shape
+# test_img = cv2.resize(ori_test_img, dsize=(256, 256))
+# test_label = cv2.imread('data/train/label/ADE_train_00000005.png')
+# test_label = cv2.resize(test_label, dsize=(256, 256))
 
-test_img_np = np.empty(shape=(1, 256, 256, 3), dtype=np.float)
-test_img_np[0, :, :, :] = test_img / np.float(255.)
-predict = model.predict(test_img_np)
-predict = predict[0]
-predict = tf.argmax(predict, axis=-1)
-predict = predict[..., tf.newaxis]
-
-pred_mask = np.empty(shape=(256, 256, 3))
-pred_mask[:, :, :] = color_list[predict[:, :, 0], :]
-label_mask = np.empty(shape=(256, 256, 3))
-label_mask[:, :, :] = color_list[test_label[:, :, 0], :]
-label_mask = cv2.resize(label_mask, dsize=(ori_row, ori_col))
-
-cv2.imwrite('data/demo_mask.png', pred_mask)
-cv2.imwrite('data/demo_label.png', label_mask)
-cv2.imwrite('data/demo_merge.jpg', 0.5 * test_img + 0.5 * pred_mask)
-cv2.imwrite('data/demo_ori.jpg', 0.5 * test_img + 0.5 * label_mask)
-
+# test_img_np = np.empty(shape=(1, 256, 256, 3), dtype=np.float)
+# test_img_np[0, :, :, :] = test_img / np.float(255.)
+# predict = model.predict(test_img_np)
+# predict = predict[0]
+# predict = tf.argmax(predict, axis=-1)
+# predict = predict[..., tf.newaxis]
+#
+# pred_mask = np.empty(shape=(256, 256, 3))
+# pred_mask[:, :, :] = color_list[predict[:, :, 0], :]
+# label_mask = np.empty(shape=(256, 256, 3))
+# label_mask[:, :, :] = color_list[test_label[:, :, 0], :]
+# label_mask = cv2.resize(label_mask, dsize=(ori_row, ori_col))
+#
+# cv2.imwrite('data/demo_mask.png', pred_mask)
+# cv2.imwrite('data/demo_label.png', label_mask)
+# cv2.imwrite('data/demo_merge.jpg', 0.5 * test_img + 0.5 * pred_mask)
+# cv2.imwrite('data/demo_ori.jpg', 0.5 * test_img + 0.5 * label_mask)
 
 
 #
@@ -272,7 +289,6 @@ part_test_label_file_path = './data/part_data/test/label/'
 # cv2.imwrite('./data/test1.png', label)
 
 
-
 # def get_colors_dict(label_path):
 #     label_list = glob.glob(label_path + '*.png')
 #     print(len(label_list))
@@ -354,8 +370,6 @@ part_test_label_file_path = './data/part_data/test/label/'
 #     dfdata = pd.DataFrame(data)
 #
 #     dfdata.to_csv(outputFile, index=False)
-
-
 
 
 # mat_path = './data/index_ade20k.mat'

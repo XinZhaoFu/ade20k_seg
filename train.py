@@ -23,15 +23,15 @@ def parseArgs():
     parser.add_argument('--mask_size', dest='mask_size', help='mask_size', default=256, type=int)
     parser.add_argument('--learning_rate', dest='learning_rate', help='learning_rate', default=0, type=float)
     parser.add_argument('--epochs', dest='epochs', help='epochs', default=0, type=int)
-    parser.add_argument('--batch_size', dest='batch_size', help='batch_size', default=1, type=int)
+    parser.add_argument('--batch_size', dest='batch_size', help='batch_size', default=8, type=int)
     parser.add_argument('--load_train_file_number', dest='load_train_file_number', help='load_train_file_number',
-                        default=1000, type=int)
+                        default=20210, type=int)
     parser.add_argument('--load_val_file_number', dest='load_val_file_number', help='load_val_file_number',
-                        default=200, type=int)
+                        default=2000, type=int)
     parser.add_argument('--load_file_mode', dest='load_file_mode',
                         help='load_file_mode type is string part or all', default='part', type=str)
     parser.add_argument('--load_data_mode', dest='load_data_mode',
-                        help='load_data_mode type is string hdf5 or file', default='hdf5', type=str)
+                        help='load_data_mode type is string hdf5 or file', default='file', type=str)
     parser.add_argument('--load_weights', dest='load_weights',
                         help='load_weights type is boolean', default=False, type=bool)
     parser.add_argument('--rewrite_hdf5', dest='rewrite_hdf5',
@@ -76,11 +76,10 @@ class seg_train:
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
         else:
-            data_loader = Data_Loader_File(mask_size=self.mask_size, data_augmentation=False)
-            self.train_img, self.train_label = data_loader.load_train_data(
-                load_file_number=self.load_train_file_number)
-            self.val_img, self.val_label = data_loader.load_val_data(
-                load_file_number=self.load_val_file_number)
+            data_loader = Data_Loader_File(mask_size=self.mask_size, data_augmentation=False,
+                                           batch_size=self.batch_size)
+            self.train_datasets = data_loader.load_train_data(load_file_number=self.load_train_file_number)
+            self.val_datasets = data_loader.load_val_data(load_file_number=self.load_val_file_number)
 
     def model_train(self):
         """
@@ -93,12 +92,14 @@ class seg_train:
                                     aspp_filters=128, final_activation='softmax')
 
             if self.learning_rate > 0:
+                print('使用sgd,其值为：\t'.join(str(self.learning_rate)))
                 model.compile(
                     optimizer=tf.keras.optimizers.SGD(learning_rate=self.learning_rate),
                     loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                     metrics=['accuracy']
                 )
             else:
+                print('使用adam')
                 model.compile(
                     optimizer='Adam',
                     loss=tf.keras.losses.SparseCategoricalCrossentropy(),
@@ -118,10 +119,14 @@ class seg_train:
                 save_best_only=True,
                 mode='auto',
                 save_freq='epoch')
-
-        history = model.fit(
-            self.train_img, self.train_label, epochs=self.epochs, verbose=1, batch_size=self.batch_size,
-            validation_data=(self.val_img, self.val_label), validation_freq=1, callbacks=[checkpoint_callback])
+        if self.load_data_mode == 'hdf5':
+            history = model.fit(
+                self.train_img, self.train_label, epochs=self.epochs, verbose=1, batch_size=self.batch_size,
+                validation_data=(self.val_img, self.val_label), validation_freq=1, callbacks=[checkpoint_callback])
+        else:
+            history = model.fit(
+                self.train_datasets, epochs=self.epochs, verbose=1, validation_data=self.val_datasets,
+                validation_freq=1, callbacks=[checkpoint_callback])
 
         model.summary()
 
