@@ -44,8 +44,8 @@ class Xception_BackBone(Model):
         self.num_middle = num_middle
 
         #   entry flow
-        self.entry_con1_1 = Con_Bn_Act(filters=32, name='entry_con1_1')
-        self.entry_con1_2 = Con_Bn_Act(filters=32, strides=2, name='entry_con1_2')
+        self.entry_con1_1 = Con_Bn_Act(filters=32, strides=2, name='entry_con1_1')
+        self.entry_con1_2 = Sep_Con_Bn_Act(filters=64, name='entry_seq_con1_2')
 
         self.entry_con_res_2 = Con_Bn_Act(filters=64, kernel_size=(1, 1), strides=2, name='entry_con_res_2')
         self.entry_sep_con2_1 = Sep_Con_Bn_Act(filters=64, name='entry_sep_con2_1')
