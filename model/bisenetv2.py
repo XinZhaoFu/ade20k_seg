@@ -1,6 +1,7 @@
 from tensorflow.keras import Model
 from model.network_utils import Con_Bn_Act, DW_Con_Bn_Act
-from tensorflow.keras.layers import MaxPooling2D, concatenate, GlobalAveragePooling2D, Activation
+from tensorflow.keras.layers import MaxPooling2D, concatenate, GlobalAveragePooling2D, Activation, \
+    AveragePooling2D, UpSampling2D, add
 
 
 class Detail_Branch(Model):
@@ -65,17 +66,17 @@ class Context_Embedding_Block(Model):
         super(Context_Embedding_Block, self).__init__()
         self.filters = filters
 
-        self.gapooling = GlobalAveragePooling2D(name='context_embedding_block_gapooling')
+        self.gapooling = GlobalAveragePooling2D(pool_size=(3, 3), name='context_embedding_block_gapooling')
         self.con_1x1 = Con_Bn_Act(kernel_size=(1, 1), filters=self.filters, name='context_embedding_block_con_1x1')
 
-        self.concat_con = Con_Bn_Act(filters=self.filters, name='context_embedding_block_concat_con')
+        self.add_con_2 = Con_Bn_Act(filters=self.filters, name='context_embedding_block_concat_con')
 
     def call(self, inputs):
         gapooling = self.gapooling(inputs)
         con_1x1 = self.con_1x1(gapooling)
 
-        concat = concatenate([inputs, con_1x1], axis=3)
-        out = self.concat_con(concat)
+        add_1 = add([inputs, con_1x1])
+        out = self.add_con_2(add_1)
 
         return out
 
@@ -104,8 +105,8 @@ class Gather_Expansion_Down_Block(Model):
         res_sw_con_3x3 = self.res_dw_con_3x3(inputs)
         res_con_1x1 = self.res_con_1x1(res_sw_con_3x3)
 
-        concat = concatenate([con_1x1, res_con_1x1], axis=3)
-        out = self.relu(concat)
+        add_res = add([con_1x1, res_con_1x1])
+        out = self.relu(add_res)
 
         return out
 
@@ -126,8 +127,8 @@ class Gather_Expansion_Block(Model):
         dw_con_3x3 = self.dw_con_3x3_1(con_3x3)
         con_1x1 = self.con_1x1(dw_con_3x3)
 
-        concat = concatenate([con_1x1, inputs], axis=3)
-        out = self.relu(concat)
+        add_res = add([con_1x1, inputs])
+        out = self.relu(add_res)
 
         return out
 
@@ -137,4 +138,17 @@ class Bilateral_Guided_Aggregation_Block(Model):
         super(Bilateral_Guided_Aggregation_Block, self).__init__()
         self.filters = filters
 
-        self.detail_branch_1_dw_con_3x3 = DW_Con_Bn_Act(filters=self.filters, activation=None)
+        self.detail_branch_1_1_dw_con_3x3 = DW_Con_Bn_Act(filters=self.filters, activation=None)
+        self.detail_branch_1_2_con_1x1 = Con_Bn_Act(filters=self.filters, kernel_size=(1, 1))
+
+        self.detail_branch_2_1_con3x3 = Con_Bn_Act(filters=self.filters, strides=2, activation=None)
+        self.detail_branch_2_2_apooling = AveragePooling2D(pool_size=(3, 3), strides=2)
+
+        self.semantic_branch_1_1_con_3x3 = Con_Bn_Act(filters=self.filters, activation=None)
+        self.semantic_branch_1_2_up_4x4 = UpSampling2D(size=(4, 4))
+        self.semantic_branch_1_3_sigmoid = Activation('sigmoid')
+
+        self.semantic_branch_2_1_dw_con_3x3 = DW_Con_Bn_Act(filters=self.filters, activation=None)
+        self.semantic_branch_2_2_con_1x1 = Con_Bn_Act(kernel_size=(1, 1), filters=self.filters)
+        self.semantic_branch_2_3_sigmoid = Activation('sigmoid')
+
