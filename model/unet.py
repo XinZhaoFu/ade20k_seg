@@ -5,7 +5,15 @@ from tensorflow.keras.models import Sequential
 
 
 class Con_Unit(Model):
-    def __init__(self, filters, init_input_shape, activation='relu'):
+    def __init__(self,
+                 filters,
+                 init_input_shape,
+                 activation='relu'):
+        """
+        :param filters:
+        :param init_input_shape: 没用的参数量 就是为了写代码的时候区分输入的size和channel
+        :param activation:
+        """
         super(Con_Unit, self).__init__()
         self.filters = filters
         self.init_input_shape = init_input_shape
@@ -13,8 +21,11 @@ class Con_Unit(Model):
         self.follow_input_shape = (width, width, self.filters)
         self.activation = activation
 
-        self.con = Conv2D(filters=self.filters, kernel_size=(3, 3), input_shape=self.init_input_shape,
-                          padding='same', use_bias=False, kernel_regularizer=regularizers.l2())
+        self.con = Conv2D(filters=self.filters,
+                          kernel_size=(3, 3),
+                          padding='same',
+                          use_bias=False,
+                          kernel_regularizer=regularizers.l2())
         self.bn = BatchNormalization(input_shape=self.follow_input_shape)
         self.act = Activation(self.activation)
 
@@ -26,7 +37,11 @@ class Con_Unit(Model):
 
 
 class Con_Block(Model):
-    def __init__(self, filters, input_width, input_channel, num_con_unit=1):
+    def __init__(self,
+                 filters,
+                 input_width,
+                 input_channel,
+                 num_con_unit=1):
         super(Con_Block, self).__init__()
         self.filters = filters
         self.input_width = input_width
@@ -49,7 +64,11 @@ class Con_Block(Model):
 
 
 class Up_Block(Model):
-    def __init__(self, filters, input_width, input_channel, num_con_unit=1):
+    def __init__(self,
+                 filters,
+                 input_width,
+                 input_channel,
+                 num_con_unit=1):
         super(Up_Block, self).__init__()
         self.filters = filters
         self.input_width = input_width
@@ -74,7 +93,12 @@ class Up_Block(Model):
 
 
 class UNet_seg(Model):
-    def __init__(self,filters=32, img_width=512, input_channel=3, num_class=13, num_con_unit=1):
+    def __init__(self,
+                 filters=32,
+                 img_width=512,
+                 input_channel=3,
+                 num_class=13,
+                 num_con_unit=1):
         super(UNet_seg, self).__init__()
         self.filters = filters
         self.input_width = img_width
@@ -82,35 +106,63 @@ class UNet_seg(Model):
         self.num_class = num_class
         self.num_con_unit = num_con_unit
 
-        self.con_block1 = Con_Block(filters=self.filters, input_width=self.input_width,
-                                    input_channel=self.input_channel, num_con_unit=self.num_con_unit)
-        self.con_block2 = Con_Block(filters=self.filters, input_width=self.input_width/2,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_block3 = Con_Block(filters=self.filters, input_width=self.input_width/4,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_block4 = Con_Block(filters=self.filters, input_width=self.input_width/8,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_block5 = Con_Block(filters=self.filters, input_width=self.input_width/16,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_block6 = Con_Block(filters=self.filters, input_width=self.input_width/32,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_block7 = Con_Block(filters=self.filters, input_width=self.input_width/64,
-                                    input_channel=self.filters, num_con_unit=self.num_con_unit)
+        self.con_block1 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width,
+                                    input_channel=self.input_channel,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block2 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/2,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block3 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/4,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block4 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/8,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block5 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/16,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block6 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/32,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
+        self.con_block7 = Con_Block(filters=self.filters,
+                                    input_width=self.input_width/64,
+                                    input_channel=self.filters,
+                                    num_con_unit=self.num_con_unit)
 
-        self.con_up7 = Up_Block(filters=self.filters, input_width=self.input_width/64,
-                                input_channel=self.filters, num_con_unit=self.num_con_unit)
-        self.con_up6 = Up_Block(filters=self.filters, input_width=self.input_width/32,
-                                input_channel=self.filters*2, num_con_unit=self.num_con_unit)
-        self.con_up5 = Up_Block(filters=self.filters, input_width=self.input_width/16,
-                                input_channel=self.filters*2, num_con_unit=self.num_con_unit)
-        self.con_up4 = Up_Block(filters=self.filters, input_width=self.input_width/8,
-                                input_channel=self.filters*2, num_con_unit=self.num_con_unit)
-        self.con_up3 = Up_Block(filters=self.filters, input_width=self.input_width/4,
-                                input_channel=self.filters*2, num_con_unit=self.num_con_unit)
-        self.con_up2 = Up_Block(filters=self.filters, input_width=self.input_width/2,
-                                input_channel=self.filters*2, num_con_unit=self.num_con_unit)
-        self.con_up1 = Con_Block(filters=self.filters, input_width=self.input_width,
-                                 input_channel=self.filters*2, num_con_unit=self.num_con_unit)
+        self.con_up7 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/64,
+                                input_channel=self.filters,
+                                num_con_unit=self.num_con_unit)
+        self.con_up6 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/32,
+                                input_channel=self.filters*2,
+                                num_con_unit=self.num_con_unit)
+        self.con_up5 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/16,
+                                input_channel=self.filters*2,
+                                num_con_unit=self.num_con_unit)
+        self.con_up4 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/8,
+                                input_channel=self.filters*2,
+                                num_con_unit=self.num_con_unit)
+        self.con_up3 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/4,
+                                input_channel=self.filters*2,
+                                num_con_unit=self.num_con_unit)
+        self.con_up2 = Up_Block(filters=self.filters,
+                                input_width=self.input_width/2,
+                                input_channel=self.filters*2,
+                                num_con_unit=self.num_con_unit)
+        self.con_up1 = Con_Block(filters=self.filters,
+                                 input_width=self.input_width,
+                                 input_channel=self.filters*2,
+                                 num_con_unit=self.num_con_unit)
 
         self.con_end = Con_Unit(filters=self.num_class,
                                 init_input_shape=(self.input_width, self.input_width, self.filters),

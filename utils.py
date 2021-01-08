@@ -62,7 +62,10 @@ def shuffle_file(img_file_list, label_file_list):
     return img_file_list, label_file_list
 
 
-def distribution_file(dis_img_file_list, dis_label_file_list, dis_img_file_path, dis_label_file_path):
+def distribution_file(dis_img_file_list,
+                      dis_label_file_list,
+                      dis_img_file_path,
+                      dis_label_file_path):
     """
     将img和label从一文件夹转至其他位置
     :param dis_img_file_list:

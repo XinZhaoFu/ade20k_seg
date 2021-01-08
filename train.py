@@ -6,6 +6,7 @@ import os
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
 from data_utils.data_loader_file import Data_Loader_File
 from model.unet import UNet_seg
+from model.bisenetv2 import BisenetV2
 from utils import print_cost_time
 import setproctitle
 import numpy as np
@@ -20,24 +21,60 @@ def parseArgs():
     :return:
     """
     parser = argparse.ArgumentParser(description='ade20k segmentation demo')
-    parser.add_argument('--mask_size', dest='mask_size', help='mask_size', default=256, type=int)
-    parser.add_argument('--learning_rate', dest='learning_rate', help='learning_rate', default=0, type=float)
-    parser.add_argument('--epochs', dest='epochs', help='epochs', default=0, type=int)
-    parser.add_argument('--batch_size', dest='batch_size', help='batch_size', default=8, type=int)
-    parser.add_argument('--load_train_file_number', dest='load_train_file_number', help='load_train_file_number',
-                        default=20210, type=int)
-    parser.add_argument('--load_val_file_number', dest='load_val_file_number', help='load_val_file_number',
-                        default=2000, type=int)
-    parser.add_argument('--load_file_mode', dest='load_file_mode',
-                        help='load_file_mode type is string part or all', default='part', type=str)
-    parser.add_argument('--load_data_mode', dest='load_data_mode',
-                        help='load_data_mode type is string hdf5 or file', default='file', type=str)
-    parser.add_argument('--load_weights', dest='load_weights',
-                        help='load_weights type is boolean', default=False, type=bool)
-    parser.add_argument('--rewrite_hdf5', dest='rewrite_hdf5',
-                        help='rewrite_hdf5 type is boolean', default=False, type=bool)
-    parser.add_argument('--data_augmentation', dest='data_augmentation',
-                        help='data_augmentation type is boolean', default=False, type=bool)
+    parser.add_argument('--mask_size',
+                        dest='mask_size',
+                        help='mask_size',
+                        default=256,
+                        type=int)
+    parser.add_argument('--learning_rate',
+                        dest='learning_rate',
+                        help='learning_rate',
+                        default=0,
+                        type=float)
+    parser.add_argument('--epochs',
+                        dest='epochs',
+                        help='epochs',
+                        default=0,
+                        type=int)
+    parser.add_argument('--batch_size',
+                        dest='batch_size',
+                        help='batch_size',
+                        default=8,
+                        type=int)
+    parser.add_argument('--load_train_file_number',
+                        dest='load_train_file_number',
+                        help='load_train_file_number',
+                        default=20210,
+                        type=int)
+    parser.add_argument('--load_val_file_number',
+                        dest='load_val_file_number',
+                        help='load_val_file_number',
+                        default=2000,
+                        type=int)
+    parser.add_argument('--load_file_mode',
+                        dest='load_file_mode',
+                        help='load_file_mode type is string part or all',
+                        default='part',
+                        type=str)
+    parser.add_argument('--load_data_mode',
+                        dest='load_data_mode',
+                        help='load_data_mode type is string hdf5 or file',
+                        default='file',
+                        type=str)
+    parser.add_argument('--load_weights',
+                        dest='load_weights',
+                        help='load_weights type is boolean',
+                        default=False, type=bool)
+    parser.add_argument('--rewrite_hdf5',
+                        dest='rewrite_hdf5',
+                        help='rewrite_hdf5 type is boolean',
+                        default=False,
+                        type=bool)
+    parser.add_argument('--data_augmentation',
+                        dest='data_augmentation',
+                        help='data_augmentation type is boolean',
+                        default=False,
+                        type=bool)
     args = parser.parse_args()
     return args
 
@@ -56,10 +93,10 @@ class seg_train:
                  data_augmentation=False,
                  augmentation_rate=4,
                  erase_rate=0.1,
-                 learning_rate=0):
+                 learning_rate=0,
+                 model_name='bisenetv2'):
+        self.model_name = model_name
         self.load_weights = load_weights
-        # self.checkpoint_save_path = './checkpoint/unet_demo1.ckpt'
-        self.checkpoint_save_path = './checkpoint/deeplabv3plus_demo1.ckpt'
         self.batch_size = batch_size
         self.epochs = epochs
         self.load_data_mode = load_data_mode
@@ -72,6 +109,7 @@ class seg_train:
         self.erase_rate = erase_rate
         self.augmentation_rate = augmentation_rate
         self.learning_rate = learning_rate
+        self.checkpoint_save_path = './checkpoint/' + self.model_name + '_demo1.ckpt'
 
         self.strategy = tf.distribute.MirroredStrategy()
         print('目前使用gpu数量为: {}'.format(self.strategy.num_replicas_in_sync))
@@ -101,12 +139,23 @@ class seg_train:
         :return:
         """
         with self.strategy.scope():
-            # model = UNet_seg(filters=128, img_width=256, input_channel=3, num_class=151, num_con_unit=2)
-            model = Deeplab_v3_plus(final_filters=151,
-                                    num_middle=8,
-                                    input_channel=3,
-                                    aspp_filters=256,
-                                    final_activation='softmax')
+            model = BisenetV2(detail_filters=64,
+                              semantic_filters=[16, 32, 64, 128],
+                              aggregation_filters=128,
+                              final_filters=151,
+                              final_act='softmax')
+            if self.model_name == 'unet':
+                model = UNet_seg(filters=128,
+                                 img_width=256,
+                                 input_channel=3,
+                                 num_class=151,
+                                 num_con_unit=2)
+            if self.model_name == 'deeplabv3plus':
+                model = Deeplab_v3_plus(final_filters=151,
+                                        num_middle=8,
+                                        input_channel=3,
+                                        aspp_filters=256,
+                                        final_activation='softmax')
 
             if self.learning_rate > 0:
                 print('使用sgd,其值为：\t'.join(str(self.learning_rate)))
@@ -125,8 +174,6 @@ class seg_train:
 
             if os.path.exists(self.checkpoint_save_path + '.index') and self.load_weights:
                 print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
-                print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
-                print("[INFO] loading weights---------怕眼瞎看不见加长版--------")
                 model.load_weights(self.checkpoint_save_path)
 
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
@@ -136,6 +183,7 @@ class seg_train:
                 save_best_only=True,
                 mode='auto',
                 save_freq='epoch')
+
         if self.load_data_mode == 'hdf5':
             history = model.fit(
                 self.train_img, self.train_label,

@@ -16,7 +16,10 @@ tf_uint8 = tf.uint8
 cv2_resize = cv2.resize
 
 
-def get_img_mask_list(file_number, file_path, mask_size=512, batch_size=16):
+def get_img_mask_list(file_number,
+                      file_path,
+                      mask_size=512,
+                      batch_size=16):
     """
     将图像和标签数据队列处理后以tensor返回
     图像格式为(size, size, 3)
@@ -60,7 +63,11 @@ def get_img_mask_list(file_number, file_path, mask_size=512, batch_size=16):
     return image_label_ds
 
 
-def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augmentation_rate=1, erase_rate=0.1):
+def get_img_mask_hdf5(file_path,
+                      mask_size=256,
+                      augmentation_mode=False,
+                      augmentation_rate=1,
+                      erase_rate=0.1):
     """
     将图像和标签存为hdf5文件
     真正的猛男敢于在服务器上使用这种方式一次性把所有文件都读取到内存里
@@ -112,7 +119,10 @@ def get_img_mask_hdf5(file_path, mask_size=256, augmentation_mode=False, augment
         assert img_name == label_name
 
         if augmentation_mode is True:
-            for img, label in hdf5_augmentation(img, label, mask_size=mask_size, erase_rate=erase_rate,
+            for img, label in hdf5_augmentation(img,
+                                                label,
+                                                mask_size=mask_size,
+                                                erase_rate=erase_rate,
                                                 augmentation_rate=augmentation_rate):
                 img_array_hdf5[file_index, :, :, :] = img[:, :, :] / npfloat16(255.)
                 mask_array_hdf5[file_index, :, :, 0] = label[:, :, 0]
@@ -161,7 +171,11 @@ def check_img_label_list(img_list, label_list):
     print('文件对应检查通过')
 
 
-def hdf5_augmentation(img, label, mask_size=256, erase_rate=0.5, augmentation_rate=1):
+def hdf5_augmentation(img,
+                      label,
+                      mask_size=256,
+                      erase_rate=0.5,
+                      augmentation_rate=1):
     """
     对图片随机引入了翻转旋转裁剪遮盖
     :param augmentation_rate:
@@ -208,7 +222,9 @@ def hdf5_augmentation(img, label, mask_size=256, erase_rate=0.5, augmentation_ra
         yield img, label
 
 
-def img_crop(ori_img, ori_label, crop_size):
+def img_crop(ori_img,
+             ori_label,
+             crop_size):
     """
     随机裁剪该图的部分区域 并resize为制定大小
     :param ori_img:
@@ -235,7 +251,10 @@ def img_crop(ori_img, ori_label, crop_size):
     return crop_img, crop_label
 
 
-def img_rotate(ori_img, ori_label, rot_num=4, img_size=256):
+def img_rotate(ori_img,
+               ori_label,
+               rot_num=4,
+               img_size=256):
     """
     图像及标注旋转 默认含四个方向的图像 0度 90度 180度 270度
     :param img_size:
@@ -272,7 +291,9 @@ def img_rotate(ori_img, ori_label, rot_num=4, img_size=256):
     return rot_img_list, rot_label_list
 
 
-def cutout(ori_img, rate=0.5, img_size=256):
+def cutout(ori_img,
+           rate=0.5,
+           img_size=256):
     """
     对正方形图片进行cutout 遮盖位置随机
         长方形需要改一下
@@ -295,7 +316,9 @@ def cutout(ori_img, rate=0.5, img_size=256):
     return cutout_img
 
 
-def gridMask(ori_img, rate=0.5, img_size=256):
+def gridMask(ori_img,
+             rate=0.5,
+             img_size=256):
     """
     对图片进行gridmask 每行每列各十个 以边均匀十等分 每一长度中包含mask长度、offset偏差和留白
         长方形需要改一下
@@ -323,7 +346,9 @@ def gridMask(ori_img, rate=0.5, img_size=256):
     return gridmask_img
 
 
-def resize_img_label_list(img_list, label_list, mask_size):
+def resize_img_label_list(img_list,
+                          label_list,
+                          mask_size):
     """
     对传入的img列表和label列表统一尺寸
     :param img_list:

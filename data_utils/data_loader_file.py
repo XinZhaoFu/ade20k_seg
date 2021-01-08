@@ -2,7 +2,10 @@ from data_utils.data_utils import get_img_mask_list
 
 
 class Data_Loader_File:
-    def __init__(self, mask_size=512, data_augmentation=False, batch_size=16):
+    def __init__(self,
+                 mask_size=512,
+                 data_augmentation=False,
+                 batch_size=16):
         self.batch_size = batch_size
         self.mask_size = mask_size
         self.data_augmentation = data_augmentation

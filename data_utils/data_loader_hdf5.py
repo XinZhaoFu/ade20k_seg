@@ -3,8 +3,14 @@ from data_utils.data_utils import get_img_mask_hdf5
 
 
 class Data_Loader_Hdf5:
-    def __init__(self, load_file_mode='part', mask_size=256, rewrite_hdf5=False, contain_test=False,
-                 data_augmentation=False, augmentation_rate=1, erase_rate=0.1):
+    def __init__(self,
+                 load_file_mode='part',
+                 mask_size=256,
+                 rewrite_hdf5=False,
+                 contain_test=False,
+                 data_augmentation=False,
+                 augmentation_rate=1,
+                 erase_rate=0.1):
         self.erase_rate = erase_rate
         self.augmentation_rate = augmentation_rate
         self.load_file_mode = load_file_mode
@@ -28,8 +34,10 @@ class Data_Loader_Hdf5:
     def rewrite_temp_hdf5_file(self):
         print('正在重写hdf5文件---------')
         print('正在重写train_temp_hdf5文件')
-        get_img_mask_hdf5(file_path=self.train_file_path, mask_size=self.mask_size,
-                          augmentation_mode=self.data_augmentation, augmentation_rate=self.augmentation_rate,
+        get_img_mask_hdf5(file_path=self.train_file_path,
+                          mask_size=self.mask_size,
+                          augmentation_mode=self.data_augmentation,
+                          augmentation_rate=self.augmentation_rate,
                           erase_rate=self.erase_rate)
         print('正在重写val_temp_hdf5文件')
         get_img_mask_hdf5(file_path=self.val_file_path, mask_size=self.mask_size)
