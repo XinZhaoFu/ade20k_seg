@@ -22,8 +22,11 @@ def recreate_dir(folder_name):
     :param folder_name:
     :return:
     """
-    shutil.rmtree(folder_name)
-    create_dir(folder_name)
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    else:
+        shutil.rmtree(folder_name)
+        create_dir(folder_name)
 
 
 def load_hdf5(in_file_path):

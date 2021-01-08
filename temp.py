@@ -6,21 +6,23 @@ import tensorflow as tf
 from model.deeplab_v3_plus import Deeplab_v3_plus
 from data_utils.data_loader_file import Data_Loader_File
 from data_utils.data_loader_hdf5 import Data_Loader_Hdf5
-from data_utils.data_augmentation import augmentation
 from utils import get_color
-from data_utils.data_utils import load_and_preprocess_image_label
+from data_utils.data_utils import file_data_augmentation
 
 np.set_printoptions(threshold=np.inf)
 
-img_path = 'data/val/' + 'img/'
-label_path = 'data/val/' + 'label/'
-img_file_path_list = glob(img_path + '*.jpg')
-label_file_path_list = glob(label_path + '*.png')
-image_label_path_ds = tf.data.Dataset.from_tensor_slices((img_file_path_list, label_file_path_list))
-# image_label_path_ds = tf.data.Dataset.from_tensor_slices(label_file_path_list)
-print(image_label_path_ds)
-(image_path, label_path) = image_label_path_ds
-print(image_path)
+file_data_augmentation('./data/train/', augmentation_rate=2)
+
+
+# img_path = 'data/val/' + 'img/'
+# label_path = 'data/val/' + 'label/'
+# img_file_path_list = glob(img_path + '*.jpg')
+# label_file_path_list = glob(label_path + '*.png')
+# image_label_path_ds = tf.data.Dataset.from_tensor_slices((img_file_path_list, label_file_path_list))
+# # image_label_path_ds = tf.data.Dataset.from_tensor_slices(label_file_path_list)
+# print(image_label_path_ds)
+# (image_path, label_path) = image_label_path_ds
+# print(image_path)
 # image_label_ds = image_label_path_ds.map(load_and_preprocess_image_label(size=256),
 #                                          num_parallel_calls=tf.data.experimental.AUTOTUNE)
 

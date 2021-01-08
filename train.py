@@ -21,10 +21,15 @@ def parseArgs():
     :return:
     """
     parser = argparse.ArgumentParser(description='ade20k segmentation demo')
+    parser.add_argument('--img_size',
+                        dest='img_size',
+                        help='img_size',
+                        default=512,
+                        type=int)
     parser.add_argument('--mask_size',
                         dest='mask_size',
                         help='mask_size',
-                        default=256,
+                        default=64,
                         type=int)
     parser.add_argument('--learning_rate',
                         dest='learning_rate',
@@ -85,7 +90,8 @@ class seg_train:
                  batch_size=8,
                  epochs=0,
                  load_data_mode='hdf5',
-                 mask_size=256,
+                 img_size=512,
+                 mask_size=64,
                  load_file_mode='part',
                  load_train_file_number=1000,
                  load_val_file_number=200,
@@ -95,12 +101,13 @@ class seg_train:
                  erase_rate=0.1,
                  learning_rate=0,
                  model_name='bisenetv2'):
+        self.mask_size = mask_size
         self.model_name = model_name
         self.load_weights = load_weights
         self.batch_size = batch_size
         self.epochs = epochs
         self.load_data_mode = load_data_mode
-        self.mask_size = mask_size
+        self.img_size = img_size
         self.load_file_mode = load_file_mode
         self.rewrite_hdf5 = rewrite_hdf5
         self.data_augmentation = data_augmentation
@@ -119,7 +126,7 @@ class seg_train:
         if self.load_data_mode == 'hdf5':
             #   load_file_mode部分数据为part 便于测试 全部数据为all 其实也可以随便写 if part else all
             data_loader = Data_Loader_Hdf5(load_file_mode=self.load_file_mode,
-                                           mask_size=self.mask_size,
+                                           mask_size=self.img_size,
                                            rewrite_hdf5=self.rewrite_hdf5,
                                            data_augmentation=self.data_augmentation,
                                            augmentation_rate=self.augmentation_rate,
@@ -127,7 +134,8 @@ class seg_train:
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
         else:
-            data_loader = Data_Loader_File(mask_size=self.mask_size,
+            data_loader = Data_Loader_File(img_size=self.img_size,
+                                           mask_size=self.mask_size,
                                            data_augmentation=False,
                                            batch_size=self.batch_size)
             self.train_datasets = data_loader.load_train_data(load_file_number=self.load_train_file_number)
@@ -213,6 +221,7 @@ def main():
                     batch_size=args.batch_size,
                     epochs=args.epochs,
                     load_data_mode=args.load_data_mode,
+                    img_size=args.img_size,
                     mask_size=args.mask_size,
                     load_file_mode=args.load_file_mode,
                     load_train_file_number=args.load_train_file_number,

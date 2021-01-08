@@ -1,66 +1,12 @@
 from glob import glob
 import numpy as np
 import cv2
-from utils import shuffle_file, write_hdf5
+from utils import shuffle_file, write_hdf5, recreate_dir
 from gc import collect
 import tensorflow as tf
 from random import randint, shuffle, choice
 
-
-tf_decode_jpeg = tf.image.decode_jpeg
-tf_resize = tf.image.resize
-tf_decode_png = tf.image.decode_png
-tf_read_file = tf.io.read_file
-tf_cast = tf.cast
-tf_uint8 = tf.uint8
 cv2_resize = cv2.resize
-
-
-def get_img_mask_list(file_number,
-                      file_path,
-                      mask_size=512,
-                      batch_size=16):
-    """
-    将图像和标签数据队列处理后以tensor返回
-    图像格式为(size, size, 3)
-    标签格式为(size, size, 1)
-    标签总计151类(含背景)
-    :param batch_size:
-    :param file_number:可以节取一部分数据
-    :param file_path:
-    :param mask_size:
-    :return:
-    """
-    autotune = tf.data.experimental.AUTOTUNE
-
-    img_path = file_path + 'img/'
-    label_path = file_path + 'label/'
-    img_file_path_list = glob(img_path + '*.jpg')
-    label_file_path_list = glob(label_path + '*.png')
-
-    assert len(img_file_path_list) == len(label_file_path_list)
-
-    # 截取部分文件
-    if file_number > len(img_file_path_list):
-        file_number = len(img_file_path_list)
-    img_file_path_list, label_file_path_list = img_file_path_list[:file_number], label_file_path_list[:file_number]
-
-    # 文件对应检查
-    check_img_label_list(img_file_path_list, label_file_path_list)
-
-    img_file_path_ds = tf.data.Dataset.from_tensor_slices(img_file_path_list)
-    image_ds = img_file_path_ds.map(load_and_preprocess_image, num_parallel_calls=autotune)
-    label_file_path_ds = tf.data.Dataset.from_tensor_slices(label_file_path_list)
-    label_ds = label_file_path_ds.map(load_and_preprocess_label, num_parallel_calls=autotune)
-    image_label_ds = tf.data.Dataset.zip((image_ds, label_ds))
-
-    # image_label_ds = image_label_ds.cache(filename='data/cache')
-    image_label_ds = image_label_ds.shuffle(buffer_size=batch_size * 8)
-    # image_label_ds = image_label_ds.repeat()
-    image_label_ds = image_label_ds.batch(batch_size)
-    image_label_ds = image_label_ds.prefetch(buffer_size=autotune)
-
-    return image_label_ds
 
 
 def get_img_mask_hdf5(file_path,
@@ -145,32 +91,6 @@ def get_img_mask_hdf5(file_path,
     collect()
 
 
-def load_and_preprocess_image(path):
-    image = tf_read_file(path)
-    image = tf_decode_jpeg(image, channels=3)
-    image = tf_resize(image, [512, 512])
-    image /= 255.0
-    return image
-
-
-def load_and_preprocess_label(path):
-    image = tf_read_file(path)
-    image = tf_decode_png(image)
-    image = tf_resize(image, [64, 64])
-    image = tf_cast(image, dtype=tf_uint8)
-
-    return image
-
-
-def check_img_label_list(img_list, label_list):
-    print('文件对应检查')
-    for img_path, label_path in zip(img_list, label_list):
-        img_name = (img_path.split('\\')[-1]).split('.')[0]
-        label_name = (label_path.split('\\')[-1]).split('.')[0]
-        assert img_name == label_name
-    print('文件对应检查通过')
-
-
 def hdf5_augmentation(img,
                       label,
                       mask_size=256,
@@ -226,7 +146,7 @@ def img_crop(ori_img,
              ori_label,
              crop_size):
     """
-    随机裁剪该图的部分区域 并resize为制定大小
+    随机裁剪该图的部分区域 并resize为指定大小
     :param ori_img:
     :param ori_label:
     :param crop_size:
@@ -263,6 +183,9 @@ def img_rotate(ori_img,
     :param rot_num:希望多少张旋转图
     :return:所得图像列表，所得标注列表
     """
+    ori_img = cv2_resize(ori_img, dsize=(img_size, img_size))
+    ori_label = cv2_resize(ori_label, dsize=(img_size, img_size))
+
     rot_img_list = []
     rot_label_list = []
     rotated_list = [0, 90, 180, 270]
@@ -364,3 +287,82 @@ def resize_img_label_list(img_list,
         resize_label_list.append(label)
 
     return resize_img_list, resize_label_list
+
+
+def check_img_label_list(img_list, label_list):
+    print('文件对应检查')
+    for img_path, label_path in zip(img_list, label_list):
+        img_name = (img_path.split('\\')[-1]).split('.')[0]
+        label_name = (label_path.split('\\')[-1]).split('.')[0]
+        assert img_name == label_name
+    print('文件对应检查通过')
+
+
+def file_data_augmentation(file_path, augmentation_rate=1):
+    aug_img_path = file_path + 'aug_img/'
+    aug_label_path = file_path + 'aug_label/'
+
+    recreate_dir(aug_img_path)
+    recreate_dir(aug_label_path)
+
+    img_path = file_path + 'img/'
+    label_path = file_path + 'label/'
+    img_file_path_list = glob(img_path + '*.jpg')
+    label_file_path_list = glob(label_path + '*.png')
+
+    cv2_imread = cv2.imread
+    cv2_imwrite = cv2.imwrite
+    cv2_flip = cv2.flip
+
+    assert len(img_file_path_list) == len(label_file_path_list)
+
+    for img_path, label_path in zip(img_file_path_list, label_file_path_list):
+        img_name = (img_path.split('\\')[-1]).split('.')[0]
+        label_name = (label_path.split('\\')[-1]).split('.')[0]
+
+        img = cv2_imread(img_path)
+        label = cv2_imread(label_path)
+
+        assert img_name == label_name
+
+        for i in range(augmentation_rate):
+            if i == 0:
+                cv2_imwrite(aug_img_path + img_name + '.jpg', img)
+                cv2_imwrite(aug_label_path + label_name + '.png', label)
+                print(aug_img_path + img_name + '.jpg')
+                print(aug_label_path + label_name + '.png')
+            else:
+                augmentation_flag = 0
+
+                crop_choice = choice([0, 1])
+                if crop_choice:
+                    augmentation_flag = 1
+                    img, label = img_crop(img, label, crop_size=1024)
+
+                flip_choice = choice([0, 1])
+                if flip_choice:
+                    augmentation_flag = 1
+                    img = cv2_flip(img, 1)
+                    label = cv2_flip(label, 1)
+
+                erase_choice = choice([0, 1])
+                if erase_choice:
+                    augmentation_flag = 1
+                    row, col, _ = img.shape
+                    img_size = row if row > col else col
+                    img = cv2_resize(img, (img_size, img_size))
+                    label = cv2_resize(label, (img_size, img_size))
+
+                    cutout_gridmask_choice = choice([0, 1])
+                    if cutout_gridmask_choice:
+                        img = gridMask(img, rate=0.1, img_size=img_size)
+                    else:
+                        img = cutout(img, rate=0.1, img_size=img_size)
+
+                if augmentation_flag == 0:
+                    img, label = img_rotate(img, label, rot_num=1, img_size=1024)
+
+                cv2_imwrite(aug_img_path + img_name + '_' + str(i) + '.jpg', img)
+                cv2_imwrite(aug_label_path + label_name + '_' + str(i) + '.png', label)
+                print(aug_img_path + img_name + '_' + str(i) + '.jpg')
+                print(aug_label_path + label_name + '_' + str(i) + '.png')
