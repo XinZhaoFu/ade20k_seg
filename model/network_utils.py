@@ -104,8 +104,10 @@ class DW_Con_Bn_Act(Model):
         self.block_name = name
         self.activation = activation
 
-        self.dw_con = DepthwiseConv2D(filters=self.filters,
-                                      kernel_size=self.kernel_size,
+        self.con_1x1 = Con_Bn_Act(filters=self.filters,
+                                  kernel_size=(1, 1))
+
+        self.dw_con = DepthwiseConv2D(kernel_size=self.kernel_size,
                                       strides=self.strides,
                                       use_bias=self.use_bias,
                                       padding=self.padding,
@@ -115,7 +117,9 @@ class DW_Con_Bn_Act(Model):
             self.act = Activation(self.activation)
 
     def call(self, inputs):
-        con = self.dw_con(inputs)
+        con_1x1 = self.con_1x1(inputs)
+
+        con = self.dw_con(con_1x1)
         bn = self.bn(con)
 
         if self.kernel_size != (1, 1) and self.activation is not None:

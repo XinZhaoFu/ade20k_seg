@@ -3,3 +3,5 @@
 *.iml
 temp.py
 /checkpoint/
+/train/
+/val/

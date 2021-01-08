@@ -1,6 +1,6 @@
 from tensorflow.keras import Model
 from model.network_utils import Con_Bn_Act, DW_Con_Bn_Act
-from tensorflow.keras.layers import MaxPooling2D, concatenate, GlobalAveragePooling2D, Activation, \
+from tensorflow.keras.layers import MaxPooling2D, concatenate, AveragePooling2D, Activation, \
     AveragePooling2D, UpSampling2D, add, multiply
 
 
@@ -20,7 +20,7 @@ class BisenetV2(Model):
         self.detail_filters = detail_filters
 
         self.detail_branch = Detail_Branch(filters=64)
-        self.semantic_branch = Semantic_Branch(filters=[16, 32, 64, 128])
+        self.semantic_branch = Semantic_Branch(filters=16)
         self.aggregation = Bilateral_Guided_Aggregation_Block(filters=128,
                                                               final_filters=151,
                                                               final_act='softmax')
@@ -72,39 +72,33 @@ class Detail_Branch(Model):
 
 
 class Semantic_Branch(Model):
-    def __init__(self, filters=None):
+    def __init__(self, filters=16):
         super(Semantic_Branch, self).__init__()
-        if filters is None:
-            filters = [16, 32, 64, 128]
         self.filters = filters
 
-        self.stem = Stem_Block(filters=self.filters[0])
+        self.stem = Stem_Block(filters=self.filters)
 
-        self.s3_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters[1])
-        self.s3_GE_down_2 = Gather_Expansion_Down_Block(filters=self.filters[1])
-        self.s3_GE_3 = Gather_Expansion_Block(filters=self.filters[1])
+        self.s3_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters*2)
+        self.s3_GE_2 = Gather_Expansion_Block(filters=self.filters*2)
 
-        self.s4_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters[2])
-        self.s4_GE_down_2 = Gather_Expansion_Down_Block(filters=self.filters[2])
-        self.s4_GE_3 = Gather_Expansion_Block(filters=self.filters[2])
+        self.s4_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters*4)
+        self.s4_GE_2 = Gather_Expansion_Block(filters=self.filters*4)
 
-        self.s5_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters[3])
-        self.s5_GE_x3 = Gather_Expansion_Block(filters=self.filters[3])
+        self.s5_GE_down_1 = Gather_Expansion_Down_Block(filters=self.filters*8)
+        self.s5_GE_x3 = Gather_Expansion_Block(filters=self.filters*8)
 
-        self.s5_CE = Context_Embedding_Block(filters=self.filters[3])
+        self.s5_CE = Context_Embedding_Block(filters=self.filters*8)
 
     def call(self, inputs):
         stem = self.stem(inputs)
 
         s3_GE_down_1 = self.s3_GE_down_1(stem)
-        s3_GE_down_2 = self.s3_GE_down_2(s3_GE_down_1)
-        s3_GE_3 = self.s3_GE_3(s3_GE_down_2)
+        s3_GE_2 = self.s3_GE_2(s3_GE_down_1)
 
-        s4_GE_down_1 = self.s4_GE_down_1(s3_GE_3)
-        s4_GE_down_2 = self.s4_GE_down_2(s4_GE_down_1)
-        s4_GE_3 = self.s4_GE_3(s4_GE_down_2)
+        s4_GE_down_1 = self.s4_GE_down_1(s3_GE_2)
+        s4_GE_2 = self.s4_GE_2(s4_GE_down_1)
 
-        s5_GE_down_1 = self.s5_GE_down_1(s4_GE_3)
+        s5_GE_down_1 = self.s5_GE_down_1(s4_GE_2)
         s5_GE_2 = self.s5_GE_x3(s5_GE_down_1)
         s5_GE_3 = self.s5_GE_x3(s5_GE_2)
         s5_GE_4 = self.s5_GE_x3(s5_GE_3)
@@ -155,11 +149,11 @@ class Context_Embedding_Block(Model):
         super(Context_Embedding_Block, self).__init__()
         self.filters = filters
 
-        self.gapooling = GlobalAveragePooling2D(pool_size=(3, 3),
-                                                name='context_embedding_block_gapooling')
+        self.gapooling = AveragePooling2D(name='context_embedding_block_gapooling', padding='same')
         self.con_1x1 = Con_Bn_Act(kernel_size=(1, 1),
                                   filters=self.filters,
                                   name='context_embedding_block_con_1x1')
+        self.up = UpSampling2D(name='context_embedding_block_up')
 
         self.add_con_2 = Con_Bn_Act(filters=self.filters,
                                     name='context_embedding_block_concat_con')
@@ -167,8 +161,9 @@ class Context_Embedding_Block(Model):
     def call(self, inputs):
         gapooling = self.gapooling(inputs)
         con_1x1 = self.con_1x1(gapooling)
+        up = self.up(con_1x1)
 
-        add_1 = add([inputs, con_1x1])
+        add_1 = add([inputs, up])
         out = self.add_con_2(add_1)
 
         return out
@@ -235,7 +230,7 @@ class Gather_Expansion_Block(Model):
 
     def call(self, inputs):
         con_3x3 = self.con_3x3(inputs)
-        dw_con_3x3 = self.dw_con_3x3_1(con_3x3)
+        dw_con_3x3 = self.dw_con_3x3(con_3x3)
         con_1x1 = self.con_1x1(dw_con_3x3)
 
         add_res = add([con_1x1, inputs])
@@ -264,6 +259,7 @@ class Bilateral_Guided_Aggregation_Block(Model):
                                                 name='aggregation_detail_down_1_con3x3')
         self.detail_down_2_apooling = AveragePooling2D(pool_size=(3, 3),
                                                        strides=2,
+                                                       padding='same',
                                                        name='aggregation_detail_down_2_apooling')
 
         self.semantic_up_1_con_3x3 = Con_Bn_Act(filters=self.filters,

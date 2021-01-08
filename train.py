@@ -34,7 +34,7 @@ def parseArgs():
     parser.add_argument('--epochs',
                         dest='epochs',
                         help='epochs',
-                        default=0,
+                        default=1,
                         type=int)
     parser.add_argument('--batch_size',
                         dest='batch_size',
@@ -140,7 +140,7 @@ class seg_train:
         """
         with self.strategy.scope():
             model = BisenetV2(detail_filters=64,
-                              semantic_filters=[16, 32, 64, 128],
+                              semantic_filters=16,
                               aggregation_filters=128,
                               final_filters=151,
                               final_act='softmax')

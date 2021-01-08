@@ -156,7 +156,7 @@ def load_and_preprocess_image(path):
 def load_and_preprocess_label(path):
     image = tf_read_file(path)
     image = tf_decode_png(image)
-    image = tf_resize(image, [512, 512])
+    image = tf_resize(image, [64, 64])
     image = tf_cast(image, dtype=tf_uint8)
 
     return image
