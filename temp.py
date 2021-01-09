@@ -11,7 +11,7 @@ from data_utils.data_utils import file_data_augmentation
 
 np.set_printoptions(threshold=np.inf)
 
-file_data_augmentation('./data/train/', augmentation_rate=2)
+file_data_augmentation('./data/train/', augmentation_rate=8)
 
 
 # img_path = 'data/val/' + 'img/'

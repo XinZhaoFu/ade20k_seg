@@ -49,12 +49,12 @@ def parseArgs():
     parser.add_argument('--load_train_file_number',
                         dest='load_train_file_number',
                         help='load_train_file_number',
-                        default=20210,
+                        default=0,
                         type=int)
     parser.add_argument('--load_val_file_number',
                         dest='load_val_file_number',
                         help='load_val_file_number',
-                        default=2000,
+                        default=0,
                         type=int)
     parser.add_argument('--load_file_mode',
                         dest='load_file_mode',
@@ -78,7 +78,7 @@ def parseArgs():
     parser.add_argument('--data_augmentation',
                         dest='data_augmentation',
                         help='data_augmentation type is boolean',
-                        default=False,
+                        default=True,
                         type=bool)
     args = parser.parse_args()
     return args
@@ -136,7 +136,7 @@ class seg_train:
         else:
             data_loader = Data_Loader_File(img_size=self.img_size,
                                            mask_size=self.mask_size,
-                                           data_augmentation=False,
+                                           data_augmentation=self.data_augmentation,
                                            batch_size=self.batch_size)
             self.train_datasets = data_loader.load_train_data(load_file_number=self.load_train_file_number)
             self.val_datasets = data_loader.load_val_data(load_file_number=self.load_val_file_number)

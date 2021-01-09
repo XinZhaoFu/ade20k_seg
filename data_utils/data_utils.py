@@ -309,6 +309,7 @@ def file_data_augmentation(file_path, augmentation_rate=1):
     label_path = file_path + 'label/'
     img_file_path_list = glob(img_path + '*.jpg')
     label_file_path_list = glob(label_path + '*.png')
+    print(len(img_file_path_list), len(label_file_path_list))
 
     cv2_imread = cv2.imread
     cv2_imwrite = cv2.imwrite
@@ -320,15 +321,18 @@ def file_data_augmentation(file_path, augmentation_rate=1):
         img_name = (img_path.split('\\')[-1]).split('.')[0]
         label_name = (label_path.split('\\')[-1]).split('.')[0]
 
-        img = cv2_imread(img_path)
-        label = cv2_imread(label_path)
+        ori_img = cv2_imread(img_path)
+        ori_label = cv2_imread(label_path)
 
         assert img_name == label_name
 
         for i in range(augmentation_rate):
+            aug_img, aug_label = ori_img, ori_label
+
             if i == 0:
-                cv2_imwrite(aug_img_path + img_name + '.jpg', img)
-                cv2_imwrite(aug_label_path + label_name + '.png', label)
+                cv2_imwrite(aug_img_path + img_name + '.jpg', aug_img)
+                aug_label = cv2.cvtColor(aug_label, cv2.COLOR_BGR2GRAY)
+                cv2_imwrite(aug_label_path + label_name + '.png', aug_label)
                 print(aug_img_path + img_name + '.jpg')
                 print(aug_label_path + label_name + '.png')
             else:
@@ -337,32 +341,33 @@ def file_data_augmentation(file_path, augmentation_rate=1):
                 crop_choice = choice([0, 1])
                 if crop_choice:
                     augmentation_flag = 1
-                    img, label = img_crop(img, label, crop_size=1024)
+                    aug_img, aug_label = img_crop(aug_img, aug_label, crop_size=512)
 
                 flip_choice = choice([0, 1])
                 if flip_choice:
                     augmentation_flag = 1
-                    img = cv2_flip(img, 1)
-                    label = cv2_flip(label, 1)
+                    aug_img = cv2_flip(aug_img, 1)
+                    aug_label = cv2_flip(aug_label, 1)
 
                 erase_choice = choice([0, 1])
                 if erase_choice:
                     augmentation_flag = 1
-                    row, col, _ = img.shape
+                    row, col, _ = aug_img.shape
                     img_size = row if row > col else col
-                    img = cv2_resize(img, (img_size, img_size))
-                    label = cv2_resize(label, (img_size, img_size))
+                    aug_img = cv2_resize(aug_img, (img_size, img_size))
+                    aug_label = cv2_resize(aug_label, (img_size, img_size))
 
                     cutout_gridmask_choice = choice([0, 1])
                     if cutout_gridmask_choice:
-                        img = gridMask(img, rate=0.1, img_size=img_size)
+                        aug_img = gridMask(aug_img, rate=0.1, img_size=img_size)
                     else:
-                        img = cutout(img, rate=0.1, img_size=img_size)
+                        aug_img = cutout(aug_img, rate=0.1, img_size=img_size)
 
                 if augmentation_flag == 0:
-                    img, label = img_rotate(img, label, rot_num=1, img_size=1024)
+                    aug_img, aug_label = img_rotate(aug_img, aug_label, rot_num=1, img_size=512)
 
-                cv2_imwrite(aug_img_path + img_name + '_' + str(i) + '.jpg', img)
-                cv2_imwrite(aug_label_path + label_name + '_' + str(i) + '.png', label)
+                cv2_imwrite(aug_img_path + img_name + '_' + str(i) + '.jpg', aug_img)
+                aug_label = cv2.cvtColor(aug_label, cv2.COLOR_BGR2GRAY)
+                cv2_imwrite(aug_label_path + label_name + '_' + str(i) + '.png', aug_label)
                 print(aug_img_path + img_name + '_' + str(i) + '.jpg')
                 print(aug_label_path + label_name + '_' + str(i) + '.png')
