@@ -89,8 +89,8 @@ class Data_Loader_File:
         label_ds = label_file_path_ds.map(self.load_and_preprocess_label, num_parallel_calls=autotune)
         image_label_ds = tf.data.Dataset.zip((image_ds, label_ds))
 
-        image_label_ds = image_label_ds.cache(filename='data/cache/')
-        image_label_ds = image_label_ds.shuffle(buffer_size=self.batch_size * 8)
+        # image_label_ds = image_label_ds.cache(filename='data/cache/')
+        image_label_ds = image_label_ds.shuffle(buffer_size=self.batch_size * 4)
         # image_label_ds = image_label_ds.repeat()
         image_label_ds = image_label_ds.batch(self.batch_size)
         image_label_ds = image_label_ds.prefetch(buffer_size=autotune)
