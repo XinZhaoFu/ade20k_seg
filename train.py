@@ -100,7 +100,7 @@ class seg_train:
                  augmentation_rate=4,
                  erase_rate=0.1,
                  learning_rate=0,
-                 model_name='bisenetv2'):
+                 model_name='deeplabv3plus'):
         self.mask_size = mask_size
         self.model_name = model_name
         self.load_weights = load_weights
@@ -118,6 +118,9 @@ class seg_train:
         self.learning_rate = learning_rate
         self.checkpoint_save_path = './checkpoint/' + self.model_name + '_demo1.ckpt'
 
+        if self.model_name == 'deeplabv3plus':
+            self.mask_size = 512
+
         self.strategy = tf.distribute.MirroredStrategy()
         print('目前使用gpu数量为: {}'.format(self.strategy.num_replicas_in_sync))
         if self.strategy.num_replicas_in_sync >= 8:
@@ -134,6 +137,7 @@ class seg_train:
             self.train_img, self.train_label = data_loader.load_train_data()
             self.val_img, self.val_label = data_loader.load_val_data()
         else:
+            print('以文件形式载入 图像尺寸为： ' + str(self.img_size) + '\t标签尺寸为: ' + str(self.mask_size))
             data_loader = Data_Loader_File(img_size=self.img_size,
                                            mask_size=self.mask_size,
                                            data_augmentation=self.data_augmentation,
@@ -147,18 +151,22 @@ class seg_train:
         :return:
         """
         with self.strategy.scope():
-            model = BisenetV2(detail_filters=64,
-                              semantic_filters=16,
-                              aggregation_filters=128,
-                              final_filters=151,
-                              final_act='softmax')
+            if self.model_name == 'bisenetV2':
+                print('bisenetV2')
+                model = BisenetV2(detail_filters=64,
+                                  semantic_filters=16,
+                                  aggregation_filters=128,
+                                  final_filters=151,
+                                  final_act='softmax')
             if self.model_name == 'unet':
+                print('unet')
                 model = UNet_seg(filters=128,
                                  img_width=256,
                                  input_channel=3,
                                  num_class=151,
                                  num_con_unit=2)
             if self.model_name == 'deeplabv3plus':
+                print('deeplabv3plus')
                 model = Deeplab_v3_plus(final_filters=151,
                                         num_middle=8,
                                         input_channel=3,

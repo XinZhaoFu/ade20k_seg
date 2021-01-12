@@ -12,10 +12,10 @@ tf_uint8 = tf.uint8
 
 class Data_Loader_File:
     def __init__(self,
-                 img_size=512,
-                 mask_size=64,
-                 data_augmentation=False,
-                 batch_size=16):
+                 img_size,
+                 mask_size,
+                 batch_size,
+                 data_augmentation=False,):
         self.img_size = img_size
         self.batch_size = batch_size
         self.mask_size = mask_size
@@ -25,23 +25,23 @@ class Data_Loader_File:
         self.val_file_path = './data/val/'
         self.test_file_path = './data/test/'
 
-    def load_train_data(self, load_file_number=1000):
+    def load_train_data(self, load_file_number):
         print('正在载入训练集')
         train_dataset = self.get_img_mask_list(file_number=load_file_number,
-                                          file_path=self.train_file_path,
+                                               file_path=self.train_file_path,
                                                data_augmentation=self.data_augmentation)
         return train_dataset
 
-    def load_val_data(self, load_file_number=200):
+    def load_val_data(self, load_file_number):
         print('正在载入验证集')
         val_dataset = self.get_img_mask_list(file_number=load_file_number,
-                                        file_path=self.val_file_path)
+                                             file_path=self.val_file_path)
         return val_dataset
 
-    def load_test_data(self, load_file_number=200):
+    def load_test_data(self, load_file_number):
         print('正在载入测试集')
         test_dataset = self.get_img_mask_list(file_number=load_file_number,
-                                         file_path=self.test_file_path)
+                                              file_path=self.test_file_path)
 
         return test_dataset
 
@@ -73,10 +73,11 @@ class Data_Loader_File:
 
         # 截取部分文件
         if file_number > 0:
-            print('截取部分文件 其数量为：\t' + str(len(img_file_path_list)))
+            print('截取部分文件 其数量为：\t' + str(file_number))
             if file_number > len(img_file_path_list):
                 file_number = len(img_file_path_list)
-            img_file_path_list, label_file_path_list = img_file_path_list[:file_number], label_file_path_list[:file_number]
+            img_file_path_list = img_file_path_list[:file_number],
+            label_file_path_list = label_file_path_list[:file_number]
         else:
             print('不截取文件 其数量为：\t' + str(len(img_file_path_list)))
 
